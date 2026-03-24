@@ -5,7 +5,6 @@
  * Uses raw.githubusercontent.com for direct file access.
  */
 
-import { GITHUB_REPO_CONFIG } from '@config/zones';
 import type { ZoneVersions } from './storage-manager';
 
 export interface FetchResult<T> {
@@ -13,6 +12,18 @@ export interface FetchResult<T> {
   data?: T;
   error?: string;
 }
+
+// GitHub repository configuration (update this with your repo URL)
+export const GITHUB_REPO_CONFIG = {
+  owner: 'YOUR_USERNAME', // Replace with actual GitHub username
+  repo: 'YOUR_REPO_NAME', // Replace with actual repo name
+  branch: 'main',
+  getScriptUrl: (scriptPath: string) =>
+    `https://raw.githubusercontent.com/${GITHUB_REPO_CONFIG.owner}/${GITHUB_REPO_CONFIG.repo}/${GITHUB_REPO_CONFIG.branch}/scripts/${scriptPath}`,
+  getVersionsUrl: () =>
+    `https://raw.githubusercontent.com/${GITHUB_REPO_CONFIG.owner}/${GITHUB_REPO_CONFIG.repo}/${GITHUB_REPO_CONFIG.branch}/versions.json`,
+};
+
 
 export class GitHubFetcher {
   /**

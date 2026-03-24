@@ -75,7 +75,8 @@ npm run build
 ```
 web-debloater-extension/
 ├── config/
-│   └── zones.ts              # Zone configuration
+│   ├── scripts.ts            # Sites & scripts configuration
+│   └── zones.ts              # Re-exports for Options UI
 ├── src/
 │   ├── background/
 │   │   └── service-worker.ts # Background script (24h alarms, updates)
@@ -84,8 +85,9 @@ web-debloater-extension/
 │   │   ├── version-manager.ts   # Version comparison logic
 │   │   ├── github-fetcher.ts    # Fetch scripts from GitHub
 │   │   ├── update-checker.ts    # Update orchestration
-│   │   ├── url-matcher.ts       # URL pattern matching
-│   │   └── script-injector.ts   # Conditional script injection
+│   │   ├── script-injector.ts   # Conditional script injection
+│   │   ├── dom-utils.js         # DOM manipulation helpers
+│   │   └── bundled-scripts.ts   # Bundled fallback scripts
 │   ├── content-scripts/
 │   │   ├── youtube/
 │   │   │   ├── shared.js        # YouTube utilities

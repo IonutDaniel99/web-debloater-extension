@@ -81,7 +81,16 @@ export class UpdateChecker {
       
       // Find script config to get script path
       const siteConfig = SCRIPTS_CONFIG.find(s => s.id === update.site);
-      const scriptConfig = siteConfig?.scripts.find(s => s.id === update.zone);
+      if (!siteConfig) {
+        failed.push(scriptKey);
+        console.error(`Site config not found for ${update.site}`);
+        continue;
+      }
+      
+      // Look in both defaultScripts and pathScripts
+      const scriptConfig = 
+        siteConfig.defaultScripts.find(s => s.id === update.zone) ||
+        siteConfig.pathScripts.find(s => s.id === update.zone);
       
       if (!scriptConfig) {
         failed.push(scriptKey);
@@ -90,7 +99,7 @@ export class UpdateChecker {
       }
 
       // Fetch the script
-      const scriptResult = await GitHubFetcher.fetchScript(scriptConfig.path);
+      const scriptResult = await GitHubFetcher.fetchScript(scriptConfig.scriptPath);
       
       if (!scriptResult.success || !scriptResult.data) {
         failed.push(scriptKey);

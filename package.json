@@ -6,8 +6,11 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "prebuild": "node scripts/update-version.js",
+    "build:beta": "npm run prebuild && npm run build",
     "preview": "vite preview",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "version:update": "node scripts/update-version.js"
   },
   "dependencies": {
     "react": "^18.2.0",

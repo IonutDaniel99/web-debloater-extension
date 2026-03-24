@@ -183,6 +183,9 @@ export class StorageManager {
   /**
    * Initialize default settings from scripts config
    */
+  /**
+   * Initialize default settings from sites config
+   */
   static async initializeDefaults(sitesConfig: any[]): Promise<void> {
     const settings = await this.getSettings();
     
@@ -191,8 +194,17 @@ export class StorageManager {
         settings[site.id] = {};
       }
       
-      // Initialize settings for each script
-      for (const script of site.scripts) {
+      // Initialize settings for default scripts
+      for (const script of site.defaultScripts || []) {
+        if (!settings[site.id][script.id]) {
+          settings[site.id][script.id] = {
+            enabled: script.defaultEnabled,
+          };
+        }
+      }
+      
+      // Initialize settings for path-specific scripts
+      for (const script of site.pathScripts || []) {
         if (!settings[site.id][script.id]) {
           settings[site.id][script.id] = {
             enabled: script.defaultEnabled,

@@ -6,18 +6,18 @@
  */
 
 // YouTube scripts
-import hideReelsButton from '../content-scripts/youtube/reels/hideReelsButton.js?raw';
-import hideReelsShelf from '../content-scripts/youtube/reels/hideReelsShelf.js?raw';
-import hideShortsLinks from '../content-scripts/youtube/shorts/hideShortsLinks.js?raw';
+import hideShortsButton from '../content-scripts/youtube/shorts/hideShortsButton.ts?raw';
+import hideShortsHome from '../content-scripts/youtube/shorts/hideShortsHome.ts?raw';
+import hideShortsSubscriptions from '../content-scripts/youtube/shorts/hideShortsSubscriptions.ts?raw';
 
 // GitHub scripts
-import githubPulls from '../content-scripts/github/pulls.js?raw';
+import githubPulls from '../content-scripts/github/pulls.ts?raw';
 
 export const BUNDLED_SCRIPTS: Record<string, Record<string, string>> = {
   youtube: {
-    hideReelsButton,
-    hideReelsShelf,
-    hideShortsLinks,
+    hideShortsButton,
+    hideShortsHome,
+    hideShortsSubscriptions,
   },
   github: {
     goToTop: githubPulls,

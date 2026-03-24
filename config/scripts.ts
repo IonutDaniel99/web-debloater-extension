@@ -1,83 +1,64 @@
 /**
- * URL-to-Scripts Mapping Configuration
+ * Sites Configuration
  * 
- * Maps URL patterns to scripts that should run on matching pages.
- * Scripts are only injected if enabled in user settings.
+ * Defines sites, URL patterns, and scripts to inject.
+ * Scripts are only injected if enabled in global settings.
  */
 
-export interface ScriptDefinition {
+export interface ScriptConfig {
   id: string; // Unique script ID (used in settings)
   name: string; // Display name
   description: string; // What the script does
-  path: string; // Path relative to content-scripts/ (e.g., "youtube/reels/hideReelsButton.js")
+  scriptPath: string; // Path relative to content-scripts/
   defaultEnabled: boolean; // Default enabled state
 }
 
-export interface URLMapping {
-  pattern: string; // URL pattern (supports wildcards)
-  scripts: string[]; // Script IDs to run on this URL
+export interface PathScript extends ScriptConfig {
+  urlPattern: string; // URL pattern regex for this specific path
 }
 
-export interface SiteScripts {
-  id: string; // Site ID
-  name: string; // Site name
-  icon: string; // Emoji
-  urlBase: string; // Base URL pattern for entire site
-  sharedScript?: string; // Path to shared utilities
-  scripts: ScriptDefinition[]; // All available scripts for this site
-  urlMappings: URLMapping[]; // URL patterns → script IDs
+export interface SiteConfig {
+  id: string; // Site ID (e.g., "youtube")
+  name: string; // Display name
+  icon?: string; // Optional emoji icon for UI
+  urlPatternBase: string; // Base URL pattern regex (e.g., "youtube\\..*")
+  sharedScript?: string; // Optional shared utilities script to inject first
+  defaultScripts: ScriptConfig[]; // Scripts to run on all pages of this site
+  pathScripts: PathScript[]; // Scripts to run on specific paths
 }
 
-export const SCRIPTS_CONFIG: SiteScripts[] = [
+export const SCRIPTS_CONFIG: SiteConfig[] = [
   {
     id: 'youtube',
     name: 'YouTube',
     icon: '🎥',
-    urlBase: '*://*.youtube.com/*',
-    // No shared script - each script is self-contained
-    scripts: [
+    urlPatternBase: 'youtube\\..*',
+    sharedScript: 'core/dom-utils.js',
+    defaultScripts: [
       {
-        id: 'hideReelsButton',
+        id: 'hideShortsButton',
         name: 'Hide Shorts Button',
         description: 'Remove the "Shorts" button from YouTube navigation',
-        path: 'youtube/reels/hideReelsButton.js',
-        defaultEnabled: true,
-      },
-      {
-        id: 'hideReelsShelf',
-        name: 'Hide Reels Shelf',
-        description: 'Remove reels/shorts shelves from pages',
-        path: 'youtube/reels/hideReelsShelf.js',
-        defaultEnabled: true,
-      },
-      {
-        id: 'hideShortsLinks',
-        name: 'Hide Shorts Videos',
-        description: 'Remove individual shorts videos from feeds',
-        path: 'youtube/shorts/hideShortsLinks.js',
+        scriptPath: 'youtube/shorts/hideShortsButton.js',
         defaultEnabled: true,
       },
     ],
-    urlMappings: [
+    pathScripts: [
       {
-        pattern: '*://*.youtube.com/',
-        scripts: ['hideReelsButton', 'hideReelsShelf'],
+        id: 'hideShortsHome',
+        name: 'Hide Shorts Shelf (Home)',
+        description: 'Remove Shorts shelf from YouTube home page',
+        scriptPath: 'youtube/shorts/hideShortsHome.js',
+        urlPattern: 'youtube\\.com/?$',
+        defaultEnabled: true,
       },
       {
-        pattern: '*://*.youtube.com/feed/*',
-        scripts: ['hideReelsButton', 'hideReelsShelf', 'hideShortsLinks'],
-      },
-      {
-        pattern: '*://*.youtube.com/results*',
-        scripts: ['hideReelsButton', 'hideReelsShelf', 'hideShortsLinks'],
-      },
-      {
-        pattern: '*://*.youtube.com/watch*',
-        scripts: ['hideReelsButton'],
-      },
-      {
-        pattern: '*://*.youtube.com/*',
-        scripts: ['hideReelsButton'], // Fallback: at least hide button everywhere
+        id: 'hideShortsSubscriptions',
+        name: 'Hide Shorts Shelf (Subscriptions)',
+        description: 'Remove shorts shelves from subscriptions pages',
+        scriptPath: 'youtube/shorts/hideShortsSubscriptions.js',
+        urlPattern: 'youtube\\..*/feed/.*',
+        defaultEnabled: true,
       },
     ],
   },
@@ -85,21 +66,16 @@ export const SCRIPTS_CONFIG: SiteScripts[] = [
     id: 'github',
     name: 'GitHub',
     icon: '🐙',
-    urlBase: '*://*.github.com/*',
-    // No shared script - each script is self-contained
-    scripts: [
+    urlPatternBase: 'github\\.com',
+    defaultScripts: [],
+    pathScripts: [
       {
         id: 'goToTop',
         name: 'Go to Top Button',
-        description: 'Add floating "Go to Top" button on long pages',
-        path: 'github/pulls.js', // Reusing existing for now
+        description: 'Add floating "Go to Top" button on pull request pages',
+        scriptPath: 'github/pulls.js',
+        urlPattern: 'github\\.com/.*/pull/.*',
         defaultEnabled: true,
-      },
-    ],
-    urlMappings: [
-      {
-        pattern: '*://*.github.com/*/*/pull/*',
-        scripts: ['goToTop'],
       },
     ],
   },
@@ -108,38 +84,46 @@ export const SCRIPTS_CONFIG: SiteScripts[] = [
 /**
  * Get scripts that should run for a given URL
  */
-export function getScriptsForURL(url: string): { site: SiteScripts; scriptIds: string[] } | null {
+export function getScriptsForURL(url: string): {
+  siteId: string;
+  sharedScript?: string;
+  scripts: Array<{ id: string; scriptPath: string }>;
+} | null {
   for (const site of SCRIPTS_CONFIG) {
     // Check if URL matches site's base pattern
-    if (!matchesPattern(url, site.urlBase)) continue;
+    if (!matchesPattern(url, site.urlPatternBase)) continue;
 
-    // Find matching URL mappings (most specific first)
-    const scriptIds = new Set<string>();
+    const scriptsToRun: Array<{ id: string; scriptPath: string }> = [];
     
-    // Sort mappings by specificity (longer patterns = more specific)
-    const sortedMappings = [...site.urlMappings].sort(
-      (a, b) => b.pattern.length - a.pattern.length
-    );
-
-    for (const mapping of sortedMappings) {
-      if (matchesPattern(url, mapping.pattern)) {
-        mapping.scripts.forEach(id => scriptIds.add(id));
-        break; // Use most specific match
+    // Always add default scripts
+    site.defaultScripts.forEach(script => {
+      scriptsToRun.push({ id: script.id, scriptPath: script.scriptPath });
+    });
+    
+    // Add path-specific scripts if URL matches
+    site.pathScripts.forEach(script => {
+      if (matchesPattern(url, script.urlPattern)) {
+        scriptsToRun.push({ id: script.id, scriptPath: script.scriptPath });
       }
-    }
+    });
 
-    return { site, scriptIds: Array.from(scriptIds) };
+    return { 
+      siteId: site.id, 
+      sharedScript: site.sharedScript,
+      scripts: scriptsToRun 
+    };
   }
 
   return null;
 }
 
 /**
- * Simple glob pattern matching
+ * Simple regex pattern matching
  */
 function matchesPattern(url: string, pattern: string): boolean {
-  const regexPattern = pattern
-    .replace(/[.+?^${}()|[\]\\]/g, '\\$&')
-    .replace(/\*/g, '.*');
-  return new RegExp(`^${regexPattern}$`).test(url);
+  try {
+    return new RegExp(pattern, 'i').test(url);
+  } catch {
+    return false;
+  }
 }

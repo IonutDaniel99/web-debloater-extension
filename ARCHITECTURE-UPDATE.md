@@ -48,7 +48,7 @@ export interface Site {
 }
 ```
 
-### 2. URL Matcher (`src/core/url-matcher.ts`)
+### 2. Script Injector (`src/core/script-injector.ts`)
 
 **Before:**
 - Checked each zone's `urlPattern` individually
@@ -165,7 +165,7 @@ No migration needed! The extension automatically:
 ## Files Modified
 
 1. `config/zones.ts` - Moved `urlPattern` to site level
-2. `src/core/url-matcher.ts` - Updated to check site patterns
+2. `src/core/script-injector.ts` - Simplified to use getScriptsForURL from config/scripts.ts
 3. `public/manifest.json` - Updated host permissions for subdomains
 4. `src/core/update-checker.ts` - Enhanced with bundled scripts loading
 5. `src/core/bundled-scripts.ts` - **NEW** - Bundles scripts with extension

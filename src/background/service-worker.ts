@@ -72,10 +72,22 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
  * Tab update handler - inject scripts on navigation
  */
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
-  // Only act when the page has finished loading
+  // Clear tracking when page starts loading (prevents duplicate injections)
+  if (changeInfo.status === 'loading') {
+    ScriptInjector.clearTabTracking(tabId);
+  }
+  
+  // Inject scripts when page has finished loading
   if (changeInfo.status === 'complete' && tab.url) {
     await ScriptInjector.handleNavigation(tabId, tab.url);
   }
+});
+
+/**
+ * Tab removed handler - clean up tracking
+ */
+chrome.tabs.onRemoved.addListener((tabId) => {
+  ScriptInjector.clearTabTracking(tabId);
 });
 
 /**
@@ -160,6 +172,13 @@ async function notifyUpdatesAvailable(count: number) {
  * Handle notification clicks - open options page
  */
 chrome.notifications.onClicked.addListener((_notificationId) => {
+  chrome.runtime.openOptionsPage();
+});
+
+/**
+ * Handle extension icon clicks - open options page
+ */
+chrome.action.onClicked.addListener(() => {
   chrome.runtime.openOptionsPage();
 });
 

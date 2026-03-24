@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { SITES_CONFIG, type Site, type Zone, type ZoneSetting } from '@config/zones';
 import type { ZoneSettings, ZoneVersions } from '@core/storage-manager';
 import type { UpdateCheckResult } from '@core/update-checker';
+import { SCRIPTS_CONFIG, SiteConfig } from '@config/scripts';
 
 function App() {
   const [settings, setSettings] = useState<ZoneSettings>({});
@@ -10,6 +10,7 @@ function App() {
   const [expandedSites, setExpandedSites] = useState<Set<string>>(new Set());
   const [isChecking, setIsChecking] = useState(false);
   const [updateInfo, setUpdateInfo] = useState<UpdateCheckResult | null>(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   // Load initial data
   useEffect(() => {
@@ -38,7 +39,7 @@ function App() {
     newSettings[siteId][zoneId][key] = value;
     setSettings(newSettings);
 
-    // Send to background script
+    // Send to background script (save to storage)
     await chrome.runtime.sendMessage({
       type: 'UPDATE_SETTING',
       siteId,
@@ -47,8 +48,14 @@ function App() {
       value,
     });
 
-    // Notify background to refresh tabs
+    // Mark as having unsaved changes (don't auto-refresh yet)
+    setHasUnsavedChanges(true);
+  };
+
+  const handleApplySettings = async () => {
+    // Refresh all tabs with new settings
     await chrome.runtime.sendMessage({ type: 'SETTINGS_CHANGED' });
+    setHasUnsavedChanges(false);
   };
 
   const handleCheckUpdates = async () => {
@@ -150,9 +157,44 @@ function App() {
         )}
       </div>
 
+      {/* Apply Changes Section */}
+      {hasUnsavedChanges && (
+        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <svg
+                className="h-5 w-5 text-yellow-400 mr-3"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              <div>
+                <p className="text-sm font-medium text-yellow-800">
+                  You have unsaved changes
+                </p>
+                <p className="text-sm text-yellow-700">
+                  Click "Apply Changes" to reload all tabs with your new settings
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={handleApplySettings}
+              className="px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 font-medium"
+            >
+              Apply Changes
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Sites Section */}
       <div className="space-y-4">
-        {SITES_CONFIG.map((site) => (
+        {SCRIPTS_CONFIG.map((site: SiteConfig) => (
           <SiteCard
             key={site.id}
             site={site}
@@ -169,15 +211,17 @@ function App() {
 }
 
 interface SiteCardProps {
-  site: Site;
-  settings: { [zoneId: string]: { [key: string]: any } };
-  versions: { [zoneId: string]: string };
+  site: SiteConfig;
+  settings: { [scriptId: string]: { [key: string]: any } };
+  versions: { [scriptId: string]: string };
   isExpanded: boolean;
   onToggle: () => void;
-  onSettingChange: (siteId: string, zoneId: string, key: string, value: any) => void;
+  onSettingChange: (siteId: string, scriptId: string, key: string, value: any) => void;
 }
 
 function SiteCard({ site, settings, versions, isExpanded, onToggle, onSettingChange }: SiteCardProps) {
+  const allScripts = [...site.defaultScripts, ...site.pathScripts];
+
   return (
     <div className="bg-white rounded-lg shadow overflow-hidden">
       {/* Site Header */}
@@ -186,10 +230,10 @@ function SiteCard({ site, settings, versions, isExpanded, onToggle, onSettingCha
         className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
       >
         <div className="flex items-center gap-3">
-          <span className="text-2xl">{site.icon}</span>
+          <span className="text-2xl">{site.icon || '🌐'}</span>
           <div className="text-left">
             <h3 className="font-semibold text-gray-900">{site.name}</h3>
-            <p className="text-sm text-gray-600">{site.zones.length} zone(s)</p>
+            <p className="text-sm text-gray-600">{allScripts.length} script(s)</p>
           </div>
         </div>
         <svg
@@ -202,17 +246,17 @@ function SiteCard({ site, settings, versions, isExpanded, onToggle, onSettingCha
         </svg>
       </button>
 
-      {/* Zones */}
+      {/* Scripts */}
       {isExpanded && (
         <div className="border-t border-gray-200 p-4 space-y-4">
-          {site.zones.map((zone) => (
-            <ZoneCard
-              key={zone.id}
+          {allScripts.map((script) => (
+            <ScriptCard
+              key={script.id}
               siteId={site.id}
-              zone={zone}
-              settings={settings[zone.id] || {}}
-              version={versions[zone.id]}
-              onSettingChange={onSettingChange}
+              script={script}
+              isEnabled={settings[script.id]?.enabled ?? script.defaultEnabled}
+              version={versions[script.id]}
+              onToggle={(enabled) => onSettingChange(site.id, script.id, 'enabled', enabled)}
             />
           ))}
         </div>
@@ -221,69 +265,37 @@ function SiteCard({ site, settings, versions, isExpanded, onToggle, onSettingCha
   );
 }
 
-interface ZoneCardProps {
+interface ScriptCardProps {
   siteId: string;
-  zone: Zone;
-  settings: { [key: string]: any };
+  script: { id: string; name: string; description: string; };
+  isEnabled: boolean;
   version?: string;
-  onSettingChange: (siteId: string, zoneId: string, key: string, value: any) => void;
+  onToggle: (enabled: boolean) => void;
 }
 
-function ZoneCard({ siteId, zone, settings, version, onSettingChange }: ZoneCardProps) {
+function ScriptCard({ script, isEnabled, version, onToggle }: ScriptCardProps) {
   return (
     <div className="border border-gray-200 rounded-md p-4">
-      <div className="flex items-start justify-between mb-3">
-        <div>
-          <h4 className="font-medium text-gray-900">{zone.name}</h4>
-          <p className="text-sm text-gray-600">{zone.description}</p>
+      <div className="flex items-start justify-between">
+        <div className="flex-1">
+          <h4 className="font-medium text-gray-900">{script.name}</h4>
+          <p className="text-sm text-gray-600 mt-1">{script.description}</p>
           {version && <p className="text-xs text-gray-500 mt-1">Version: {version}</p>}
         </div>
-      </div>
-
-      <div className="space-y-3">
-        {zone.settings.map((setting) => (
-          <SettingControl
-            key={setting.key}
-            siteId={siteId}
-            zoneId={zone.id}
-            setting={setting}
-            value={settings[setting.key] ?? setting.default}
-            onChange={onSettingChange}
+        <label className="flex items-center gap-2 cursor-pointer ml-4">
+          <input
+            type="checkbox"
+            checked={isEnabled}
+            onChange={(e) => onToggle(e.target.checked)}
+            className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
           />
-        ))}
+          <span className="text-sm font-medium text-gray-700">
+            {isEnabled ? 'Enabled' : 'Disabled'}
+          </span>
+        </label>
       </div>
     </div>
   );
-}
-
-interface SettingControlProps {
-  siteId: string;
-  zoneId: string;
-  setting: ZoneSetting;
-  value: any;
-  onChange: (siteId: string, zoneId: string, key: string, value: any) => void;
-}
-
-function SettingControl({ siteId, zoneId, setting, value, onChange }: SettingControlProps) {
-  if (setting.type === 'boolean') {
-    return (
-      <label className="flex items-center gap-2 cursor-pointer">
-        <input
-          type="checkbox"
-          checked={value}
-          onChange={(e) => onChange(siteId, zoneId, setting.key, e.target.checked)}
-          className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-        />
-        <div>
-          <span className="text-sm font-medium text-gray-900">{setting.label}</span>
-          <p className="text-xs text-gray-600">{setting.description}</p>
-        </div>
-      </label>
-    );
-  }
-
-  // Add more control types as needed (select, number, etc.)
-  return null;
 }
 
 export default App;
