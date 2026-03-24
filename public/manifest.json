@@ -1,0 +1,51 @@
+{
+    "manifest_version": 3,
+    "name": "Web Debloater",
+    "version": "1.0.2",
+    "description": "Auto-updating zone-based website debloater and enhancer",
+    "permissions": [
+        "storage",
+        "alarms",
+        "scripting",
+        "notifications"
+    ],
+    "host_permissions": [
+        "*://*.youtube.com/*",
+        "*://*.github.com/*",
+        "https://raw.githubusercontent.com/*"
+    ],
+    "background": {
+        "service_worker": "service-worker.js",
+        "type": "module"
+    },
+    "options_page": "src/options/options.html",
+    "action": {
+        "default_title": "Web Debloater Settings"
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "*://*.youtube.com/*",
+                "*://*.github.com/*"
+            ],
+            "js": ["content-scripts/trusted-types-bypass.js"],
+            "run_at": "document_start",
+            "all_frames": false
+        }
+    ],
+    "web_accessible_resources": [
+        {
+            "resources": [
+                "scripts/youtube/**/*.js",
+                "scripts/github/**/*.js"
+            ],
+            "matches": [
+                "*://*.youtube.com/*",
+                "*://*.github.com/*"
+            ]
+        }
+    ],
+    "content_security_policy": {
+        "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self';"
+    }
+}

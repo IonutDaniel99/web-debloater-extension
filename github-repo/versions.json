@@ -1,0 +1,10 @@
+{
+  "youtube": {
+    "hideReelsButton": "1.0.0",
+    "hideReelsShelf": "1.0.0",
+    "hideShortsLinks": "1.0.0"
+  },
+  "github": {
+    "goToTop": "1.0.0"
+  }
+}
