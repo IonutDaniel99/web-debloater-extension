@@ -39,7 +39,7 @@ export class ScriptInjector {
       };
     }
 
-    const { siteId, sharedScript, scripts } = match;
+    const { siteId, scripts } = match;
     
     // Get settings from storage
     const settings = await StorageManager.getSettings();
@@ -52,6 +52,21 @@ export class ScriptInjector {
 
     console.log(`[ScriptInjector] URL: ${url}`);
     console.log(`[ScriptInjector] Site: ${siteId}, Scripts to check:`, scripts.map(s => s.id));
+
+    // Inject dom-utils globally (only once per tab)
+    if (!tabInjected.has('__dom_utils__')) {
+      try {
+        await chrome.scripting.executeScript({
+          target: { tabId },
+          files: ['scripts/core/dom-utils.js'],
+          world: 'MAIN',
+        });
+        tabInjected.add('__dom_utils__');
+        console.log(`[ScriptInjector] ✓ Injected dom-utils.js`);
+      } catch (error) {
+        console.error(`[ScriptInjector] Failed to inject dom-utils:`, error);
+      }
+    }
 
     // Inject selectors first (only once per tab)
     if (!tabInjected.has('__selectors__')) {
@@ -71,21 +86,6 @@ export class ScriptInjector {
         console.log(`[ScriptInjector] ✓ Injected selectors`);
       } catch (error) {
         console.error(`[ScriptInjector] Failed to inject selectors:`, error);
-      }
-    }
-
-    // Inject shared script if it exists and hasn't been injected yet
-    if (sharedScript && !tabInjected.has(`${siteId}/shared`)) {
-      try {
-        await chrome.scripting.executeScript({
-          target: { tabId },
-          files: [`scripts/${sharedScript}`],
-          world: 'MAIN',
-        });
-        tabInjected.add(`${siteId}/shared`);
-        console.log(`[ScriptInjector] ✓ Injected shared utilities: ${sharedScript}`);
-      } catch (error) {
-        console.error(`[ScriptInjector] Failed to inject shared script:`, error);
       }
     }
 

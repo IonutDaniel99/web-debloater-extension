@@ -30,7 +30,6 @@ export interface SiteConfig {
   name: string; // Display name
   icon?: string; // Optional emoji icon for UI
   urlPatternBase: string; // Base URL pattern regex (e.g., "youtube\\..*")
-  sharedScript?: string; // Optional shared utilities script to inject first
   defaultScripts: ScriptConfig[]; // Scripts to run on all pages of this site
   pathScripts: PathScript[]; // Scripts to run on specific paths
 }
@@ -41,13 +40,12 @@ export const SCRIPTS_CONFIG: SiteConfig[] = [
     name: 'YouTube',
     icon: '🎥',
     urlPatternBase: 'youtube\\..*',
-    sharedScript: 'core/dom-utils.js',
     defaultScripts: [
       {
         id: 'hideShortsButton',
         name: 'Hide Shorts Button',
         description: 'Remove the "Shorts" button from YouTube navigation',
-        scriptPath: 'youtube/shorts/hideShortsButton.js',
+        scriptPath: 'youtube/remove/shorts/hideShortsButton.js',
         defaultEnabled: true,
       },
     ],
@@ -56,7 +54,7 @@ export const SCRIPTS_CONFIG: SiteConfig[] = [
         id: 'hideShortsHome',
         name: 'Hide Shorts Shelf (Home)',
         description: 'Remove Shorts shelf from YouTube home page',
-        scriptPath: 'youtube/shorts/hideShortsHome.js',
+        scriptPath: 'youtube/remove/shorts/hideShortsHome.js',
         urlPattern: 'youtube\\.com/?$',
         defaultEnabled: true,
       },
@@ -64,7 +62,7 @@ export const SCRIPTS_CONFIG: SiteConfig[] = [
         id: 'hideShortsSubscriptions',
         name: 'Hide Shorts Shelf (Subscriptions)',
         description: 'Remove shorts shelves from subscriptions pages',
-        scriptPath: 'youtube/shorts/hideShortsSubscriptions.js',
+        scriptPath: 'youtube/remove/shorts/hideShortsSubscriptions.js',
         urlPattern: 'youtube\\..*/feed/.*',
         defaultEnabled: true,
       },
@@ -75,17 +73,16 @@ export const SCRIPTS_CONFIG: SiteConfig[] = [
     name: 'GitHub',
     icon: '🐙',
     urlPatternBase: 'github\\.com',
-    defaultScripts: [],
-    pathScripts: [
+    defaultScripts: [
       {
         id: 'goToTop',
         name: 'Go to Top Button',
-        description: 'Add floating "Go to Top" button on pull request pages',
-        scriptPath: 'github/pulls.js',
-        urlPattern: 'github\\.com/.*/pull/.*',
+        description: 'Add floating "Go to Top" button on all GitHub pages',
+        scriptPath: 'github/add/goToTopButton.js',
         defaultEnabled: true,
       },
     ],
+    pathScripts: [],
   },
 ];
 
@@ -94,7 +91,6 @@ export const SCRIPTS_CONFIG: SiteConfig[] = [
  */
 export function getScriptsForURL(url: string): {
   siteId: string;
-  sharedScript?: string;
   scripts: Array<{ id: string; scriptPath: string }>;
 } | null {
   for (const site of SCRIPTS_CONFIG) {
@@ -116,8 +112,7 @@ export function getScriptsForURL(url: string): {
     });
 
     return { 
-      siteId: site.id, 
-      sharedScript: site.sharedScript,
+      siteId: site.id,
       scripts: scriptsToRun 
     };
   }

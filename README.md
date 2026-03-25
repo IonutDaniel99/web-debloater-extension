@@ -193,10 +193,28 @@ Selectors are stored in `config/selectors.json` with three supported formats:
 
 ### Using Selectors in Scripts
 
+**For Removing Elements:**
 ```typescript
-// Content script example
+// Content script - Remove elements
 const selectors = window.Debloater.getSelectors('youtube.shorts.button');
 window.Debloater.deleteElements(selectors);
+window.Debloater.observeAndRemove(selectors); // Auto-remove when they appear
+```
+
+**For Adding UI Elements:**
+```typescript
+// Content script - Add "Go to Top" button
+const buttonHTML = `
+  <button id="my-button" style="position: fixed; bottom: 20px; right: 20px;">
+    ↑ Top
+  </button>
+`;
+window.Debloater.addElements(buttonHTML, 'body', 'append');
+
+// Add click handler
+document.getElementById('my-button').onclick = () => {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
 ```
 
 ### Updating Selectors
