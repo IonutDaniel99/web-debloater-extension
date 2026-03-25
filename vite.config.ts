@@ -87,8 +87,8 @@ export default defineConfig({
       input: {
         // Service worker (background script)
         'service-worker': resolve(__dirname, 'src/core/service-worker.ts'),
-        // Options page
-        options: resolve(__dirname, 'src/options/options.html'),
+        // Web page
+        options: resolve(__dirname, 'src/webpage/index.html'),
       },
       output: {
         entryFileNames: (chunkInfo) => {

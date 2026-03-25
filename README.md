@@ -147,8 +147,8 @@ src/
   │   ├── storage-manager.ts    # Settings storage
   │   ├── update-checker.ts     # Update checking
   │   └── version-manager.ts    # Version comparison
-  └── options/
-      └── App.tsx               # Options page UI
+  └── webpage/
+      └── App.tsx               # Web page UI
 
 public/
   └── manifest.json             # Extension manifest
@@ -381,7 +381,7 @@ npm run build
 npm run dev
 ```
 
-Changes to React components (options page) hot reload automatically. TypeScript modules require rebuild.
+Changes to React components (web page) hot reload automatically. TypeScript modules require rebuild.
 
 ### Debugging
 
@@ -418,7 +418,7 @@ Changes to React components (options page) hot reload automatically. TypeScript 
 ### Scripts Not Injecting
 
 1. Verify URL patterns in `config/scripts.ts` match the page
-2. Check zones are enabled in options page
+2. Check zones are enabled in web page
 3. Look for injection errors in service worker console
 
 ### Updates Not Working
@@ -426,7 +426,7 @@ Changes to React components (options page) hot reload automatically. TypeScript 
 1. Verify `SELECTORS_URL` is correct and publicly accessible
 2. Check version is incremented in remote `selectors.json`
 3. Check service worker console for fetch errors
-4. Try manual update from options page
+4. Try manual update from web page
 
 ### Build Errors
 

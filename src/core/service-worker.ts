@@ -5,7 +5,7 @@
  * - Extension installation and initialization
  * - 24-hour alarm for automatic update checks
  * - Tab navigation monitoring for script injection
- * - Messages from options page (manual updates, settings changes)
+ * - Messages from web page (manual updates, settings changes)
  */
 
 import { UpdateChecker } from '@core/update-checker';
@@ -93,7 +93,7 @@ chrome.tabs.onRemoved.addListener((tabId) => {
 });
 
 /**
- * Message handler from options page
+ * Message handler from web page
  */
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   (async () => {
@@ -171,14 +171,14 @@ async function notifyUpdatesAvailable(count: number) {
 }
 
 /**
- * Handle notification clicks - open options page
+ * Handle notification clicks - open web page
  */
 chrome.notifications.onClicked.addListener((_notificationId) => {
   chrome.runtime.openOptionsPage();
 });
 
 /**
- * Handle extension icon clicks - open options page
+ * Handle extension icon clicks - open web page
  */
 chrome.action.onClicked.addListener(() => {
   chrome.runtime.openOptionsPage();

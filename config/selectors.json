@@ -1,6 +1,8 @@
 {
-  "_comment": "Selector format can be: string | { selector: string, type: 'css'|'xpath'|'id' } | Array<string | object>",
-  "version": "1.0.1",
+  "_comment_warning": "THIS FILE JUST DELETE DOM ELEMENTS, IT DOES NOT ADD ANY FUNCTIONALITY.",
+  "_comment_description": "This file is used to store the selectors for different websites and their respective zones.",
+  "_comment_schema": "Selector format can be: string | { selector: string, type: 'css'|'xpath'|'id' } | Array<string | object>",
+  "version": "1.0.3",
   "lastUpdated": "2026-03-25",
   "selectors": {
     "youtube": {
