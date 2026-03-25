@@ -77,7 +77,10 @@ export function useSettings() {
     setPendingChanges(newPending);
 
     // Notify user and refresh tabs
-    await chrome.runtime.sendMessage({ type: 'SETTINGS_CHANGED' });
+    await chrome.runtime.sendMessage({ 
+      type: 'SETTINGS_CHANGED',
+      siteId 
+    });
     toast.success(`${siteName} settings applied!`);
   };
 

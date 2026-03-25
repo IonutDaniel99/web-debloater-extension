@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "Web Debloater",
-    "version": "2026.3.25.1813",
+    "version": "2026.3.25.2052",
     "description": "Auto-updating zone-based website debloater and enhancer",
     "permissions": [
         "storage",
@@ -12,6 +12,7 @@
     "host_permissions": [
         "*://*.youtube.com/*",
         "*://*.github.com/*",
+        "*://*.instagram.com/*",
         "https://raw.githubusercontent.com/*"
     ],
     "background": {
@@ -25,8 +26,7 @@
     "content_scripts": [
         {
             "matches": [
-                "*://*.youtube.com/*",
-                "*://*.github.com/*"
+                "<all_urls>"
             ],
             "js": [
                 "content-scripts/trusted-types-bypass.js"
@@ -39,11 +39,11 @@
         {
             "resources": [
                 "scripts/youtube/**/*.js",
-                "scripts/github/**/*.js"
+                "scripts/github/**/*.js",
+                "scripts/instagram/**/*.js"
             ],
             "matches": [
-                "*://*.youtube.com/*",
-                "*://*.github.com/*"
+                "<all_urls>"
             ]
         }
     ],

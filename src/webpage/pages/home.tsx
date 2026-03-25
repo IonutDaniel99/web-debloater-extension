@@ -10,8 +10,8 @@ import {
   Clock,
   TrendingUp
 } from "lucide-react";
-import { SCRIPTS_CONFIG } from "@config/scripts";
 import { SiteIcon } from "../components/SiteIcon";
+import { SCRIPTS_CONFIG } from "@/page-scripts/scripts";
 
 export const Home = () => {
   const {

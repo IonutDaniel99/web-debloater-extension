@@ -6,26 +6,29 @@
  * Requires: core/dom-utils.ts to be injected first
  */
 
-/// <reference path="../../../core/dom-utils.ts" />
+/// <reference path="../../../../core/dom-utils.ts" />
 
 (function() {
   'use strict';
 
-  console.log('[hideShortsHome] Initializing...');
+  const APP_NAME = 'Youtube';
+  const SCRIPT_ID = 'hideShortsHome';
+
+  console.log(`[${APP_NAME}][${SCRIPT_ID}] Initializing...`);
 
   // Wait for shared utilities to be available
   if (!window.Debloater) {
-    console.error('[hideShortsHome] Debloater utilities not loaded!');
+    console.error(`[${APP_NAME}][${SCRIPT_ID}] Debloater utilities not loaded!`);
     return;
   }
 
   // Get selectors from storage
-  const SHORTS_SHELF_SELECTORS = window.Debloater.getSelectors('youtube.shorts.home');
+  const SELECTORS = window.Debloater.getSelectors('youtube.shorts.home');
 
   function hideShortsShelf() {
-    const removed = window.Debloater!.deleteElements(SHORTS_SHELF_SELECTORS);
+    const removed = window.Debloater!.deleteElements(SELECTORS);
     if (removed > 0) {
-      console.log(`[hideShortsHome] Removed ${removed} shorts shelves`);
+      console.log(`[${APP_NAME}][${SCRIPT_ID}] Removed ${removed} shorts shelves`);
     }
   }
 
@@ -38,11 +41,11 @@
     setTimeout(hideShortsShelf, 1000);
     
     // Observe for dynamic changes
-    if (SHORTS_SHELF_SELECTORS && (Array.isArray(SHORTS_SHELF_SELECTORS) ? SHORTS_SHELF_SELECTORS.length > 0 : true)) {
-      window.Debloater!.observeAndRemove(SHORTS_SHELF_SELECTORS);
+    if (SELECTORS && (Array.isArray(SELECTORS) ? SELECTORS.length > 0 : true)) {
+      window.Debloater!.observeAndRemove(SELECTORS);
     }
     
-    console.log('[hideShortsHome] Active');
+    console.log(`[${APP_NAME}][${SCRIPT_ID}] Active`);
   }
 
   if (document.readyState === 'loading') {

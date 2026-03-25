@@ -11,7 +11,7 @@
 import { UpdateChecker } from '@core/update-checker';
 import { ScriptInjector } from '@core/script-injector';
 import { StorageManager } from '@core/storage-manager';
-import { ENV } from '@config/env';
+import { ENV } from '@/env';
 
 const ALARM_NAME = ENV.ALARM_NAME;
 const UPDATE_INTERVAL_HOURS = ENV.UPDATE_INTERVAL_HOURS;
@@ -126,8 +126,13 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
           break;
 
         case 'SETTINGS_CHANGED':
-          // Refresh scripts on all tabs after settings change
-          await ScriptInjector.refreshAllTabs();
+          // Refresh scripts only on tabs for the specific site
+          if (message.siteId) {
+            await ScriptInjector.refreshTabsForSite(message.siteId);
+          } else {
+            // Fallback to refresh all if no siteId provided
+            await ScriptInjector.refreshAllTabs();
+          }
           sendResponse({ success: true });
           break;
 

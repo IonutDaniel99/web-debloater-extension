@@ -5,7 +5,7 @@
  * Simple logic: if script is enabled in settings, inject it. Otherwise, don't.
  */
 
-import { SCRIPTS_CONFIG } from '@config/scripts';
+import { SCRIPTS_CONFIG } from "@/page-scripts/scripts";
 import { StorageManager } from './storage-manager';
 import { loadSelectors } from './selector-manager';
 import { BUNDLED_SELECTORS } from './bundled-selectors';
@@ -40,6 +40,7 @@ export class ScriptInjector {
     }
 
     const { siteId, scripts } = match;
+    console.log(match)
     
     // Get settings from storage
     const settings = await StorageManager.getSettings();
@@ -147,8 +148,31 @@ export class ScriptInjector {
   }
 
   /**
-   * Re-inject scripts on all active tabs (e.g., after settings change)
+   * Re-inject scripts on tabs for a specific site (e.g., after settings change)
    * This clears tracking and re-injects based on new settings
+   */
+  static async refreshTabsForSite(siteId: string): Promise<void> {
+    // Get site config to find URL pattern
+    const siteConfig = SCRIPTS_CONFIG.find(s => s.id === siteId);
+    if (!siteConfig) return;
+
+    const tabs = await chrome.tabs.query({});
+    
+    for (const tab of tabs) {
+      if (tab.id && tab.url && !tab.url.startsWith('chrome://')) {
+        // Check if this tab matches the site's URL pattern
+        if (matchesPattern(tab.url, siteConfig.urlPatternBase)) {
+          // Clear tracking for this tab and reload
+          injectedScripts.delete(tab.id);
+          await chrome.tabs.reload(tab.id);
+        }
+      }
+    }
+  }
+
+  /**
+   * Re-inject scripts on all active tabs
+   * Use refreshTabsForSite() instead when possible for better UX
    */
   static async refreshAllTabs(): Promise<void> {
     // Clear all tracking

@@ -2,10 +2,10 @@ import { useState } from "react";
 import { cn } from "@/webpage/lib/utils";
 import { Link, useLocation } from "react-router-dom";
 import { Search, X, Home as HomeIcon } from "lucide-react";
-import { PagesInterface } from "../MainLayout/MainLayout";
-import { SCRIPTS_CONFIG } from "@config/scripts";
+import { SCRIPTS_CONFIG } from "@/page-scripts/scripts";
 import { ModeToggle } from "../../ModeToggle";
 import { SiteIcon } from "../../SiteIcon";
+import { PagesInterface } from "../../../configs/pages";
 
 export function Sidebar({ pages }: { pages: PagesInterface[] }) {
   const location = useLocation();

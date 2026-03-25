@@ -1,35 +1,11 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AlertTriangle } from 'lucide-react';
 import { Sidebar } from '../Sidebar/Sidebar';
-import { YouTubePage } from '@/webpage/content-pages/youtube';
-import { GitHubPage } from '@/webpage/content-pages/github';
-import { Home } from '../../../content-pages/home';
 import { useSettings } from '@/webpage/hooks/useSettings';
 import { cn } from '@/webpage/lib/utils';
+import { PAGES } from '../../../configs/pages';
+import Home from '@/webpage/pages/home';
 
-export interface PagesInterface { 
-  id: string; 
-  element: JSX.Element; 
-  path: string;
-}
-
-const PAGES: PagesInterface[] = [
-  {
-    id: 'home',
-    element: <Home />,
-    path: '/'
-  },
-  {
-    id: 'youtube',
-    element: <YouTubePage />,
-    path: '/site/youtube'
-  },
-  {
-    id: 'github',
-    element: <GitHubPage />,
-    path: '/site/github'
-  }
-];
 
 const MainLayout = () => {
   const { isExtension } = useSettings();

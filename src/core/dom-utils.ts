@@ -5,7 +5,7 @@
  * Injected as window.Debloater for global access.
  */
 
-export type SelectorType = 'css' | 'xpath' | 'id';
+export type SelectorType = 'css' | 'xpath' | 'id' | 'class';
 
 export interface SelectorConfig {
   selector: string;
@@ -79,6 +79,10 @@ export {};
         }
         break;
         
+      case 'class':
+        // Handle space-separated classes: "class1 class2 class3" -> ".class1.class2.class3"
+        elements.push(...Array.from(document.getElementsByClassName(config.selector)));
+        break;
       case 'css':
       default:
         elements.push(...Array.from(document.querySelectorAll(config.selector)));

@@ -17,29 +17,30 @@ export default defineConfig({
           resolve(__dirname, 'dist/manifest.json')
         );
         
-        // Create directories
+        // Create base directories (subdirectories are created by compileAndCopyDir)
         mkdirSync(resolve(__dirname, 'dist/icons'), { recursive: true });
-        mkdirSync(resolve(__dirname, 'dist/content-scripts'), { recursive: true });
-        mkdirSync(resolve(__dirname, 'dist/scripts/youtube'), { recursive: true });
-        mkdirSync(resolve(__dirname, 'dist/scripts/github'), { recursive: true });
-        mkdirSync(resolve(__dirname, 'dist/scripts/core'), { recursive: true });
+        mkdirSync(resolve(__dirname, 'dist/page-scripts'), { recursive: true });
+        mkdirSync(resolve(__dirname, 'dist/scripts'), { recursive: true });
         
         // Copy trusted types bypass script
         copyFileSync(
-          resolve(__dirname, 'src/content-scripts/trusted-types-bypass.js'),
-          resolve(__dirname, 'dist/content-scripts/trusted-types-bypass.js')
+          resolve(__dirname, 'src/page-scripts/trusted-types-bypass.js'),
+          resolve(__dirname, 'dist/page-scripts/trusted-types-bypass.js')
         );
         
-        // Copy YouTube scripts (compile .ts to .js)
+        // Copy scripts (compile .ts to .js)
         const compileAndCopyDir = async (src: string, dest: string) => {
           const entries = readdirSync(src);
           for (const entry of entries) {
-            const srcPath = join(src, entry);            const destPath = join(dest, entry);
+            const srcPath = join(src, entry);
+            const destPath = join(dest, entry);
+            
             if (statSync(srcPath).isDirectory()) {
               mkdirSync(destPath, { recursive: true });
               await compileAndCopyDir(srcPath, destPath);
-            } else if (entry.endsWith('.ts') && !entry.endsWith('.d.ts')) {
-              // Compile TypeScript to JavaScript using esbuild
+            } else if (entry.endsWith('.ts') && !entry.endsWith('.d.ts') && !entry.endsWith('_config.ts')) {
+              // Compile TypeScript content scripts to JavaScript using esbuild
+              // Skip *_config.ts files as they're imported modules, not content scripts
               const result = await esbuild.build({
                 entryPoints: [srcPath],
                 write: false,
@@ -57,15 +58,20 @@ export default defineConfig({
         
         // Compile and copy scripts
         await compileAndCopyDir(
-          resolve(__dirname, 'src/content-scripts/youtube'),
+          resolve(__dirname, 'src/page-scripts/youtube'),
           resolve(__dirname, 'dist/scripts/youtube')
         );
         await compileAndCopyDir(
-          resolve(__dirname, 'src/content-scripts/github'),
+          resolve(__dirname, 'src/page-scripts/github'),
           resolve(__dirname, 'dist/scripts/github')
+        );
+        await compileAndCopyDir(
+          resolve(__dirname, 'src/page-scripts/instagram'),
+          resolve(__dirname, 'dist/scripts/instagram')
         );
         
         // Compile dom-utils.ts to core directory
+        mkdirSync(resolve(__dirname, 'dist/scripts/core'), { recursive: true });
         const domUtilsResult = await esbuild.build({
           entryPoints: [resolve(__dirname, 'src/core/dom-utils.ts')],
           write: false,

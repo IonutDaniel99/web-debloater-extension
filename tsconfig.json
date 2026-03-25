@@ -32,5 +32,5 @@
     "types": ["chrome", "node"]
   },
   "include": ["src", "config"],
-  "exclude": ["node_modules", "dist", "src/content-scripts"]
+  "exclude": ["node_modules", "dist", "src/page-scripts"]
 }

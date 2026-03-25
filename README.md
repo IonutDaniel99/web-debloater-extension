@@ -177,7 +177,8 @@ Selectors are stored in `config/selectors.json` with three supported formats:
         ],
         "subscriptions": [
           "ytd-reel-shelf-renderer",
-          { "selector": "shorts-shelf", "type": "id" }
+          { "selector": "shorts-shelf", "type": "id" },
+          { "selector": "x1dr59a3 x13vifvy x7vhb2i", "type": "class" }
         ]
       }
     }
@@ -189,7 +190,11 @@ Selectors are stored in `config/selectors.json` with three supported formats:
 
 1. **String** - Single CSS selector
 2. **Array** - Multiple CSS selectors
-3. **Object** - Selector with type (css/xpath/id)
+3. **Object** - Selector with type (css/xpath/id/class)
+   - `css` - CSS selector (default)
+   - `xpath` - XPath expression
+   - `id` - Element ID
+   - `class` - Space-separated class names (e.g., "x1dr59a3 x13vifvy x7vhb2i")
 
 ### Using Selectors in Scripts
 
@@ -445,7 +450,7 @@ npm run type-check
 
 ```typescript
 // TypeScript definitions
-export type SelectorType = 'css' | 'xpath' | 'id';
+export type SelectorType = 'css' | 'xpath' | 'id' | 'class';
 
 export interface SelectorConfig {
   selector: string;
@@ -469,6 +474,9 @@ export type SelectorInput =
 
 // XPath
 { "selector": "//div[@class='promoted']", "type": "xpath" }
+
+// Class
+{ "selector": "x1dr59a3 x13vifvy x7vhb2i", "type": "class" }
 
 // Mixed array
 [

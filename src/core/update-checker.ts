@@ -10,10 +10,10 @@
 
 import { VersionManager } from './version-manager';
 import { StorageManager } from './storage-manager';
-import { SCRIPTS_CONFIG } from '@config/scripts';
+import { SCRIPTS_CONFIG } from "@/page-scripts/scripts";
 import { getSelectorVersion, updateSelectors, initializeSelectors } from './selector-manager';
 import { BUNDLED_SELECTORS } from './bundled-selectors';
-import { ENV } from '@config/env';
+import { ENV } from '@/env';
 
 export interface SelectorUpdateCheckResult {
   success: boolean;

@@ -1,25 +1,39 @@
 {
   "_comment_warning": "THIS FILE JUST DELETE DOM ELEMENTS, IT DOES NOT ADD ANY FUNCTIONALITY.",
   "_comment_description": "This file is used to store the selectors for different websites and their respective zones.",
-  "_comment_schema": "Selector format can be: string | { selector: string, type: 'css'|'xpath'|'id' } | Array<string | object>",
-  "version": "1.0.3",
+  "_comment_schema": "Selector format can be: string | { selector: string, type: 'css'|'xpath'|'id'|'class' } | Array<string | object>",
+  "version": "1.0.6",
   "lastUpdated": "2026-03-25",
   "selectors": {
     "youtube": {
       "shorts": {
         "button": [
-          { "selector": "ytd-mini-guide-entry-renderer:has(a[href*=\"/shorts\"])", "type": "css" }
+          {
+            "selector": "ytd-mini-guide-entry-renderer:has(a[href*=\"/shorts\"])",
+            "type": "css"
+          }
         ],
         "home": [
-          { "selector": "ytd-browse[page-subtype='home'] ytd-rich-shelf-renderer[is-shorts]", "type": "css" }
+          {
+            "selector": "ytd-browse[page-subtype='home'] ytd-rich-shelf-renderer[is-shorts]",
+            "type": "css"
+          }
         ],
         "subscriptions": [
-          { "selector": "ytd-browse[page-subtype='subscriptions'] ytd-rich-shelf-renderer[is-shorts]", "type": "css" }
+          {
+            "selector": "ytd-browse[page-subtype='subscriptions'] ytd-rich-shelf-renderer[is-shorts]",
+            "type": "css"
+          }
         ]
       }
     },
+    "instagram": {
+      "home": {
+        "selector": "x1dr59a3 x13vifvy x7vhb2i x6bx242",
+        "type": "class"
+      }
+    },
     "github": {
-      "pulls": {}
     }
   }
 }
