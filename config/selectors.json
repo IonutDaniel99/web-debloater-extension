@@ -1,0 +1,23 @@
+{
+  "_comment": "Selector format can be: string | { selector: string, type: 'css'|'xpath'|'id' } | Array<string | object>",
+  "version": "1.0.1",
+  "lastUpdated": "2026-03-25",
+  "selectors": {
+    "youtube": {
+      "shorts": {
+        "button": [
+          { "selector": "ytd-mini-guide-entry-renderer:has(a[href*=\"/shorts\"])", "type": "css" }
+        ],
+        "home": [
+          { "selector": "ytd-browse[page-subtype='home'] ytd-rich-shelf-renderer[is-shorts]", "type": "css" }
+        ],
+        "subscriptions": [
+          { "selector": "ytd-browse[page-subtype='subscriptions'] ytd-rich-shelf-renderer[is-shorts]", "type": "css" }
+        ]
+      }
+    },
+    "github": {
+      "pulls": {}
+    }
+  }
+}

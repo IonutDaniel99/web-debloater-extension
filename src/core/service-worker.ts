@@ -11,9 +11,10 @@
 import { UpdateChecker } from '@core/update-checker';
 import { ScriptInjector } from '@core/script-injector';
 import { StorageManager } from '@core/storage-manager';
+import { ENV } from '@config/env';
 
-const ALARM_NAME = 'update-check';
-const UPDATE_INTERVAL_HOURS = 24;
+const ALARM_NAME = ENV.ALARM_NAME;
+const UPDATE_INTERVAL_HOURS = ENV.UPDATE_INTERVAL_HOURS;
 
 /**
  * Extension installation handler
@@ -21,11 +22,12 @@ const UPDATE_INTERVAL_HOURS = 24;
 chrome.runtime.onInstalled.addListener(async (details) => {
   console.log('Extension installed:', details.reason);
 
-  // Always ensure bundled scripts are loaded (handles install, update, and dev reloads)
-  await UpdateChecker.initializeFallbackScripts();
+  // Initialize default settings and selectors
+  await UpdateChecker.initializeSettings();
+  await UpdateChecker.initializeBundledSelectors();
   
   if (details.reason === 'install') {
-    // First install - try to fetch latest from GitHub
+    // First install - try to fetch latest selectors from remote
     const result = await UpdateChecker.checkAndApplyUpdates();
     console.log('Initial update check:', result);
   }
@@ -59,11 +61,11 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
     
     const result = await UpdateChecker.checkForUpdates();
     
-    if (result.success && result.updatesAvailable.length > 0) {
-      // Notify user about available updates
-      await notifyUpdatesAvailable(result.updatesAvailable.length);
+    if (result.success && result.needsUpdate) {
+      // Notify user about available selector updates
+      await notifyUpdatesAvailable(1); // One selector update available
     } else {
-      console.log('No updates available');
+      console.log('No selector updates available');
     }
   }
 });
@@ -103,7 +105,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
           break;
 
         case 'APPLY_UPDATES':
-          const applyResult = await UpdateChecker.applyUpdates(message.updates);
+          const applyResult = await UpdateChecker.applyUpdates();
           sendResponse({ success: true, data: applyResult });
           break;
 

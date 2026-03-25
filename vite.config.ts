@@ -86,7 +86,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         // Service worker (background script)
-        'service-worker': resolve(__dirname, 'src/background/service-worker.ts'),
+        'service-worker': resolve(__dirname, 'src/core/service-worker.ts'),
         // Options page
         options: resolve(__dirname, 'src/options/options.html'),
       },

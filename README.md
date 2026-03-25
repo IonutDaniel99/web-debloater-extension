@@ -1,179 +1,493 @@
-# Web Debloater - Chrome Extension
+# Web Debloater Extension
 
-A zone-based, auto-updating Chrome extension for debloating websites and adding custom enhancements.
+Chrome extension for removing unwanted elements from websites using dynamic, auto-updating selectors.
 
 ## Features
 
-- **Zone-Based Architecture**: Each website has multiple zones (feature modules) with independent scripts and settings
-- **Site-Level URL Matching**: All zones for a site run on every page (e.g., all YouTube zones run on `*://*.youtube.com/*`)
-- **Auto-Updates**: Scripts update automatically from GitHub every 24 hours
-- **Per-Zone Versioning**: Each zone has its own version number for granular updates
-- **React Options Page**: Modern, expandable UI for managing settings
-- **TypeScript Core**: Type-safe core modules for reliability
-- **Smart Script Injection**: Scripts decide what to modify based on page content, not URL restrictions
+- 🎯 **Dynamic Selectors** - Update selectors without releasing new extension versions
+- 🔄 **Auto-Updates** - Selectors update automatically every 24 hours
+- 📦 **Bundled Fallback** - Works offline with bundled selectors
+- ⚙️ **Per-Site Settings** - Enable/disable features for each website
+- 🛠️ **Type-Safe** - Full TypeScript support with multiple selector formats
 
-## Supported Sites
+**Currently Supports:**
+- YouTube (Hide Shorts button, shelf on home/subscriptions)
+- GitHub (Go to top button on PR pages)
 
-### YouTube (`*://*.youtube.com/*`)
-- **Reels Removal**: Remove YouTube Reels/Shorts from all pages (home, subscriptions, search, etc.)
-- **Subscription Feed**: Enhancements for subscription page
+---
 
-### GitHub (`*://*.github.com/*`)
-- **Pull Requests**: "Go to Top" button and other PR enhancements
+## Installation
 
-## Setup
+### Prerequisites
 
-### 1. Install Dependencies
+- Node.js 18+
+- Chrome/Edge/Brave browser
+
+### Steps
 
 ```bash
+# 1. Clone repository
+git clone https://github.com/YOUR_USERNAME/web-debloater-extension
+cd web-debloater-extension
+
+# 2. Install dependencies
 npm install
+
+# 3. Configure environment
+cp .env.example .env
+# Edit .env and set VITE_SELECTORS_URL to your selectors.json URL
+
+# 4. Build extension
+npm run build
+
+# 5. Load in Chrome
+# - Open chrome://extensions/
+# - Enable "Developer mode"
+# - Click "Load unpacked"
+# - Select the dist/ folder
 ```
 
-### 2. Configure GitHub Repository
+---
 
-Create a public GitHub repository for hosting your zone scripts, then update `config/zones.ts`:
+## Configuration
+
+### Environment Variables
+
+Create a `.env` file (copy from `.env.example`):
+
+```bash
+# Selector Update URL
+VITE_SELECTORS_URL=https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/selectors.json
+
+# Update check interval (hours)
+VITE_UPDATE_INTERVAL_HOURS=24
+
+# Alarm name for Chrome alarms
+VITE_ALARM_NAME=selector-update-check
+```
+
+**Required:**
+- `VITE_SELECTORS_URL` - URL to your remote `selectors.json` file
+
+**Optional:**
+- `VITE_UPDATE_INTERVAL_HOURS` - Default: 24
+- `VITE_ALARM_NAME` - Default: selector-update-check
+
+### 1. Set Up Remote Selectors (Required)
+
+### 1. Set Up Remote Selectors (Required)
+
+**Option A: GitHub (Recommended)**
+
+1. Create a public repository (e.g., `debloater-selectors`)
+2. Upload `config/selectors.json`:
+
+```bash
+git init
+git add config/selectors.json
+git commit -m "Add selectors"
+git remote add origin https://github.com/YOUR_USERNAME/debloater-selectors.git
+git push -u origin main
+```
+
+3. Update `.env`:
+```bash
+VITE_SELECTORS_URL=https://raw.githubusercontent.com/YOUR_USERNAME/debloater-selectors/main/selectors.json
+```
+
+**Option B: Your Own Server**
+
+1. Upload `config/selectors.json` to your server
+2. Update `.env`:
+```bash
+VITE_SELECTORS_URL=https://your-domain.com/selectors.json
+```
+
+**Option C: Skip Remote (Local Only)**
+
+Leave default URL - extension will use bundled selectors only (no auto-updates).
+
+---
+
+## Build Commands
+
+```bash
+# Development build (with hot reload)
+npm run dev
+
+# Production build
+npm run build
+
+# Type check only
+npm run type-check
+
+# Update version number
+npm run version:update
+```
+
+---
+
+## Project Structure
+
+```
+config/
+  ├── scripts.ts          # Site and script configuration
+  └── selectors.json      # Bundled selectors (updated remotely)
+
+src/
+  ├── background/
+  │   └── service-worker.ts     # Background script
+  ├── content-scripts/
+  │   ├── youtube/              # YouTube scripts
+  │   └── github/               # GitHub scripts
+  ├── core/
+  │   ├── dom-utils.ts          # DOM manipulation utilities
+  │   ├── selector-manager.ts   # Selector storage/updates
+  │   ├── script-injector.ts    # Script injection logic
+  │   ├── storage-manager.ts    # Settings storage
+  │   ├── update-checker.ts     # Update checking
+  │   └── version-manager.ts    # Version comparison
+  └── options/
+      └── App.tsx               # Options page UI
+
+public/
+  └── manifest.json             # Extension manifest
+
+dist/                           # Build output (load this in Chrome)
+```
+
+---
+
+## Selector System
+
+### Selector Format
+
+Selectors are stored in `config/selectors.json` with three supported formats:
+
+```json
+{
+  "version": "1.0.0",
+  "selectors": {
+    "youtube": {
+      "shorts": {
+        "button": "ytd-mini-guide-entry-renderer:has(a[href*=\"/shorts\"])",
+        "home": [
+          "ytd-rich-shelf-renderer",
+          "ytd-rich-shelf-renderer[is-shorts]"
+        ],
+        "subscriptions": [
+          "ytd-reel-shelf-renderer",
+          { "selector": "shorts-shelf", "type": "id" }
+        ]
+      }
+    }
+  }
+}
+```
+
+**Format Types:**
+
+1. **String** - Single CSS selector
+2. **Array** - Multiple CSS selectors
+3. **Object** - Selector with type (css/xpath/id)
+
+### Using Selectors in Scripts
 
 ```typescript
-export const GITHUB_REPO_CONFIG = {
-  owner: 'your-github-username',
-  repo: 'your-repo-name',
-  branch: 'main',
-  // ...
-};
+// Content script example
+const selectors = window.Debloater.getSelectors('youtube.shorts.button');
+window.Debloater.deleteElements(selectors);
 ```
 
-### 3. Upload Scripts to GitHub
+### Updating Selectors
 
-Upload the contents of the `github-repo/` folder to your GitHub repository:
-- `scripts/youtube/` - YouTube zone scripts
-- `scripts/github/` - GitHub zone scripts
-- `versions.json` - Version tracking file
+1. **Test selector** on live site:
+   ```javascript
+   // Browser console
+   document.querySelectorAll('YOUR_SELECTOR')
+   ```
 
-### 4. Build Extension
+2. **Update `selectors.json`**:
+   ```json
+   {
+     "version": "1.0.1",  // Increment version
+     "selectors": {
+       "youtube": {
+         "shorts": {
+           "home": ["new-selector", "another-selector"]
+         }
+       }
+     }
+   }
+   ```
 
-Development mode with HMR:
-```bash
-npm run dev
+3. **Upload to remote URL**
+
+4. **Users get update** automatically within 24h or via manual update
+
+---
+
+## DOM Utilities API
+
+All content scripts have access to `window.Debloater`:
+
+### `getSelectors(path)`
+Get selectors by dot-notation path.
+
+```typescript
+const selectors = window.Debloater.getSelectors('youtube.shorts.button');
 ```
 
-Production build:
+### `deleteElements(selectors)`
+Remove elements from DOM.
+
+```typescript
+window.Debloater.deleteElements(['selector1', 'selector2']);
+window.Debloater.deleteElements({ selector: 'id-name', type: 'id' });
+```
+
+### `observeAndRemove(selectors, callback?)`
+Auto-remove elements as they appear.
+
+```typescript
+window.Debloater.observeAndRemove(['selector'], (count) => {
+  console.log(`Removed ${count} elements`);
+});
+```
+
+### `waitForElement(selector, timeout?)`
+Wait for element to appear.
+
+```typescript
+await window.Debloater.waitForElement('#content');
+```
+
+### `addElements(elements, parent?, position?)`
+Add elements to DOM.
+
+```typescript
+window.Debloater.addElements('<div>Hello</div>', 'body', 'append');
+```
+
+---
+
+## Adding New Sites
+
+### 1. Add Site Configuration
+
+Edit `config/scripts.ts`:
+
+```typescript
+export const SCRIPTS_CONFIG: SiteConfig[] = [
+  // ... existing sites
+  {
+    id: 'twitter',
+    name: 'Twitter',
+    icon: '🐦',
+    urlPatternBase: 'twitter\\.com',
+    sharedScript: 'core/dom-utils.js',
+    defaultScripts: [
+      {
+        id: 'hidePromoted',
+        name: 'Hide Promoted Tweets',
+        description: 'Remove promoted content',
+        scriptPath: 'twitter/hidePromoted.js',
+        defaultEnabled: true,
+      }
+    ],
+    pathScripts: []
+  }
+];
+```
+
+### 2. Add Selectors
+
+Edit `config/selectors.json`:
+
+```json
+{
+  "selectors": {
+    "twitter": {
+      "promoted": ["div[data-testid='promoted']"]
+    }
+  }
+}
+```
+
+### 3. Create Content Script
+
+Create `src/content-scripts/twitter/hidePromoted.ts`:
+
+```typescript
+(function() {
+  'use strict';
+  
+  if (!window.Debloater) {
+    console.error('Debloater utilities not loaded!');
+    return;
+  }
+
+  const selectors = window.Debloater.getSelectors('twitter.promoted');
+  window.Debloater.deleteElements(selectors);
+  window.Debloater.observeAndRemove(selectors);
+})();
+```
+
+### 4. Update Manifest
+
+Add host permission to `public/manifest.json`:
+
+```json
+{
+  "host_permissions": [
+    "*://*.youtube.com/*",
+    "*://*.github.com/*",
+    "*://*.twitter.com/*"
+  ]
+}
+```
+
+### 5. Rebuild
+
 ```bash
 npm run build
 ```
 
-### 5. Load Extension in Chrome
-
-1. Open `chrome://extensions/`
-2. Enable "Developer mode"
-3. Click "Load unpacked"
-4. Select the `dist/` folder
+---
 
 ## Development
 
-### Project Structure
+### File Watching
 
-```
-web-debloater-extension/
-├── config/
-│   ├── scripts.ts            # Sites & scripts configuration
-│   └── zones.ts              # Re-exports for Options UI
-├── src/
-│   ├── background/
-│   │   └── service-worker.ts # Background script (24h alarms, updates)
-│   ├── core/
-│   │   ├── storage-manager.ts   # chrome.storage.local wrapper
-│   │   ├── version-manager.ts   # Version comparison logic
-│   │   ├── github-fetcher.ts    # Fetch scripts from GitHub
-│   │   ├── update-checker.ts    # Update orchestration
-│   │   ├── script-injector.ts   # Conditional script injection
-│   │   ├── dom-utils.js         # DOM manipulation helpers
-│   │   └── bundled-scripts.ts   # Bundled fallback scripts
-│   ├── content-scripts/
-│   │   ├── youtube/
-│   │   │   ├── shared.js        # YouTube utilities
-│   │   │   ├── reels.js         # Reels removal
-│   │   │   └── subscription.js  # Subscription enhancements
-│   │   └── github/
-│   │       ├── shared.js        # GitHub utilities
-│   │       └── pulls.js         # PR enhancements
-│   └── options/
-│       ├── options.html         # Options page entry
-│       ├── options.tsx         # React entry point
-│       ├── App.tsx             # Main React component
-│       └── options.css         # Tailwind CSS
-├── public/
-│   └── manifest.json           # Chrome extension manifest
-└── github-repo/                # Template for GitHub repository
-    ├── scripts/                # Scripts to upload to GitHub
-    └── versions.json           # Version tracking
+```bash
+npm run dev
 ```
 
-### Adding a New Zone
+Changes to React components (options page) hot reload automatically. TypeScript modules require rebuild.
 
-1. **Create the script file** in `src/content-scripts/{site}/{zone}.js`
-2. **Add zone configuration** in `config/zones.ts`:
-   ```typescript
-   {
-     id: 'my-zone',
-     name: 'My Zone',
-     description: 'Zone description',
-     scriptPath: 'site/my-zone.js',
-     settings: [
-       {
-         key: 'enabled',
-         label: 'Enable',
-         type: 'boolean',
-         default: true,
-       },
-     ],
-   }
+### Debugging
+
+**Service Worker:**
+- `chrome://extensions/` → Web Debloater → service worker link
+- View background script console
+
+**Content Scripts:**
+- Open page (e.g., youtube.com)
+- DevTools → Console
+- LoEnvironment Variables Not Loading
+
+1. Ensure `.env` file is in project root
+2. Variable names must start with `VITE_`
+3. Restart dev server after changing `.env`
+4. Rebuild: `npm run build`
+
+### ok for `[Debloater]` logs
+
+**Storage:**
+- DevTools → Application → Storage → chrome.storage.local
+- Check `selectors_data` and settings
+
+---
+
+## Troubleshooting
+
+### Selectors Not Loading
+
+1. Check service worker console for errors
+2. Verify `window.__SELECTORS__` exists in page console
+3. Check `chrome.storage.local` has `selectors_data`
+
+### Scripts Not Injecting
+
+1. Verify URL patterns in `config/scripts.ts` match the page
+2. Check zones are enabled in options page
+3. Look for injection errors in service worker console
+
+### Updates Not Working
+
+1. Verify `SELECTORS_URL` is correct and publicly accessible
+2. Check version is incremented in remote `selectors.json`
+3. Check service worker console for fetch errors
+4. Try manual update from options page
+
+### Build Errors
+
+```bash
+# Clean reinstall
+rm -rf node_modules package-lock.json
+npm install
+
+# Type check
+npm run type-check
+```
+
+---
+
+## Selector Types Reference
+
+```typescript
+// TypeScript definitions
+export type SelectorType = 'css' | 'xpath' | 'id';
+
+export interface SelectorConfig {
+  selector: string;
+  type?: SelectorType;
+}
+
+export type SelectorInput = 
+  | string 
+  | SelectorConfig 
+  | Array<string | SelectorConfig>;
+```
+
+**Examples:**
+
+```typescript
+// CSS (default)
+"ytd-rich-shelf-renderer"
+
+// ID
+{ "selector": "content", "type": "id" }
+
+// XPath
+{ "selector": "//div[@class='promoted']", "type": "xpath" }
+
+// Mixed array
+[
+  "ytd-shelf",
+  { "selector": "content-id", "type": "id" },
+  { "selector": "//div[@data-promoted]", "type": "xpath" }
+]
+```
+
+---
+
+## Publishing
+
+### Chrome Web Store
+
+1. Build production version:
+   ```bash
+   npm run build
    ```
-   Note: URL matching is now at the site level (e.g., `*://*.youtube.com/*`). Scripts handle page-specific logic internally.
 
-3. **Copy script to GitHub repo template** (`github-repo/scripts/{site}/`)
-4. **Update `github-repo/versions.json`** with the new zone version
-5. **Rebuild extension** and upload GitHub files
+2. Create ZIP:
+   ```bash
+   cd dist
+   zip -r ../web-debloater.zip .
+   ```
 
-### Updating Zone Scripts
+3. Upload to [Chrome Web Store Developer Dashboard](https://chrome.google.com/webstore/devconsole)
 
-After modifying a zone script:
+### Update Process
 
-1. Update the script in `github-repo/scripts/{site}/{zone}.js`
-2. Increment version in `github-repo/versions.json`
-3. Commit and push to GitHub
-4. Users will receive updates within 24 hours (or manually via settings)
+1. Update code/selectors
+2. Increment version in `package.json`
+3. Build and test
+4. Upload new version to store
+5. For selector-only updates, just update remote `selectors.json`
 
-## How It Works
-
-### Update Flow
-
-1. **Service Worker** sets a 24-hour alarm on installation
-2. Every 24 hours, **Update Checker** fetches `versions.json` from GitHub
-3. **Version Manager** compares local vs remote versions
-4. If updates available, user is notified via `chrome.notifications`
-5. User approves updates in options page
-6. **GitHub Fetcher** downloads updated zone scripts
-7. **Storage Manager** saves scripts to `chrome.storage.local`
-8. **Script Injector** uses updated scripts on next page load
-
-### Script Injection Flow
-
-1. User navigates to a website (e.g., `youtube.com/feed/subscriptions`)
-2. **Service Worker** listens for `chrome.tabs.onUpdated`
-3. **URL Matcher** determines which site matches the URL (site-level matching)
-4. **Script Injector** loads ALL enabled zones for that site
-5. Injects `shared.js` if any zone for the site requires it
-6. Injects each enabled zone script with settings via `chrome.scripting.executeScript`
-7. Zone scripts access settings via `window.__ZONE_SETTINGS__` and handle page-specific logic internally
-8. Example: The reels zone checks if current page is home/subscriptions/search and acts accordingly
-
-## Tech Stack
-
-- **Vite**: Build tool with HMR for development
-- **React**: Options page UI
-- **TypeScript**: Core modules (type-safe)
-- **Tailwind CSS**: Styling
-- **Vanilla JS**: Content scripts (no build step, downloaded from GitHub)
+---
 
 ## License
 

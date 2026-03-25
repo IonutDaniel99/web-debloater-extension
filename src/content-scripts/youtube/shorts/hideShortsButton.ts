@@ -19,9 +19,8 @@
     return;
   }
 
-  const SHORTS_BUTTON_SELECTORS = [
-    'ytd-mini-guide-entry-renderer:has(a[href*="/shorts"])',
-  ];
+  // Get selectors from storage
+  const SHORTS_BUTTON_SELECTORS = window.Debloater.getSelectors('youtube.shorts.button');
 
   // Initial removal
   const removed = window.Debloater.deleteElements(SHORTS_BUTTON_SELECTORS);
@@ -29,8 +28,10 @@
     console.log(`[hideShortsButton] Removed ${removed} Shorts buttons`);
   }
 
-  // Observe for dynamic changes (single call with array)
-  window.Debloater.observeAndRemove(SHORTS_BUTTON_SELECTORS);
+  // Observe for dynamic changes
+  if (SHORTS_BUTTON_SELECTORS && (Array.isArray(SHORTS_BUTTON_SELECTORS) ? SHORTS_BUTTON_SELECTORS.length > 0 : true)) {
+    window.Debloater.observeAndRemove(SHORTS_BUTTON_SELECTORS);
+  }
 
   console.log('[hideShortsButton] Active');
 })();

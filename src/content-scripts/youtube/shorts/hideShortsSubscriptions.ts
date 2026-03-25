@@ -19,10 +19,8 @@
     return;
   }
 
-  const SHORTS_SHELF_SELECTORS = [
-    'ytd-reel-shelf-renderer',
-    'ytd-rich-shelf-renderer[is-shorts]',
-  ];
+  // Get selectors from storage
+  const SHORTS_SHELF_SELECTORS = window.Debloater.getSelectors('youtube.shorts.subscriptions');
 
   // Initial removal
   const removed = window.Debloater.deleteElements(SHORTS_SHELF_SELECTORS);
@@ -30,8 +28,10 @@
     console.log(`[hideShortsSubscriptions] Removed ${removed} shorts shelves`);
   }
 
-  // Observe for dynamic changes (single call with array)
-  window.Debloater.observeAndRemove(SHORTS_SHELF_SELECTORS);
+  // Observe for dynamic changes
+  if (SHORTS_SHELF_SELECTORS && (Array.isArray(SHORTS_SHELF_SELECTORS) ? SHORTS_SHELF_SELECTORS.length > 0 : true)) {
+    window.Debloater.observeAndRemove(SHORTS_SHELF_SELECTORS);
+  }
 
   console.log('[hideShortsSubscriptions] Active');
 })();

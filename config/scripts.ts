@@ -5,6 +5,14 @@
  * Scripts are only injected if enabled in global settings.
  */
 
+import { ENV } from './env';
+
+/**
+ * Remote Selectors URL
+ * Loaded from .env file (VITE_SELECTORS_URL)
+ */
+export const SELECTORS_URL = ENV.SELECTORS_URL;
+
 export interface ScriptConfig {
   id: string; // Unique script ID (used in settings)
   name: string; // Display name

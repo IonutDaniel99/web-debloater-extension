@@ -7,6 +7,8 @@
 
 import { getScriptsForURL } from '@config/scripts';
 import { StorageManager } from './storage-manager';
+import { loadSelectors } from './selector-manager';
+import { BUNDLED_SELECTORS } from './bundled-selectors';
 
 export interface InjectionResult {
   success: boolean;
@@ -51,7 +53,28 @@ export class ScriptInjector {
     console.log(`[ScriptInjector] URL: ${url}`);
     console.log(`[ScriptInjector] Site: ${siteId}, Scripts to check:`, scripts.map(s => s.id));
 
-    // Inject shared script first if it exists and hasn't been injected yet
+    // Inject selectors first (only once per tab)
+    if (!tabInjected.has('__selectors__')) {
+      try {
+        // Load selectors from storage
+        const selectorsData = await loadSelectors();
+        const dataToInject = selectorsData || BUNDLED_SELECTORS;
+
+        await chrome.scripting.executeScript({
+          target: { tabId },
+          func: (data) => { window.__SELECTORS__ = data; },
+          args: [dataToInject],
+          world: 'MAIN',
+        });
+        
+        tabInjected.add('__selectors__');
+        console.log(`[ScriptInjector] ✓ Injected selectors`);
+      } catch (error) {
+        console.error(`[ScriptInjector] Failed to inject selectors:`, error);
+      }
+    }
+
+    // Inject shared script if it exists and hasn't been injected yet
     if (sharedScript && !tabInjected.has(`${siteId}/shared`)) {
       try {
         await chrome.scripting.executeScript({

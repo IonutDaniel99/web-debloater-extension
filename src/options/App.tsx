@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { ZoneSettings, ZoneVersions } from '@core/storage-manager';
-import type { UpdateCheckResult } from '@core/update-checker';
+import type { SelectorUpdateCheckResult } from '@core/update-checker';
 import { SCRIPTS_CONFIG, SiteConfig } from '@config/scripts';
 
 function App() {
@@ -9,7 +9,7 @@ function App() {
   const [lastCheck, setLastCheck] = useState<number>(0);
   const [expandedSites, setExpandedSites] = useState<Set<string>>(new Set());
   const [isChecking, setIsChecking] = useState(false);
-  const [updateInfo, setUpdateInfo] = useState<UpdateCheckResult | null>(null);
+  const [updateInfo, setUpdateInfo] = useState<SelectorUpdateCheckResult | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   // Load initial data
@@ -69,12 +69,11 @@ function App() {
   };
 
   const handleApplyUpdates = async () => {
-    if (!updateInfo || updateInfo.updatesAvailable.length === 0) return;
+    if (!updateInfo || !updateInfo.needsUpdate) return;
 
     setIsChecking(true);
     const response = await chrome.runtime.sendMessage({
       type: 'APPLY_UPDATES',
-      updates: updateInfo.updatesAvailable,
     });
     if (response.success) {
       await loadData();
@@ -119,34 +118,30 @@ function App() {
           </button>
         </div>
 
-        {updateInfo && updateInfo.updatesAvailable.length > 0 && (
+        {updateInfo && updateInfo.needsUpdate && (
           <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-md">
             <div className="flex items-center justify-between">
               <div>
                 <p className="font-medium text-blue-900">
-                  {updateInfo.updatesAvailable.length} update(s) available
+                  Selector update available
                 </p>
-                <ul className="mt-2 text-sm text-blue-800">
-                  {updateInfo.updatesAvailable.map((u) => (
-                    <li key={`${u.site}-${u.zone}`}>
-                      {u.site}/{u.zone}: {u.localVersion || 'none'} → {u.remoteVersion}
-                    </li>
-                  ))}
-                </ul>
+                <p className="mt-2 text-sm text-blue-800">
+                  Version: {updateInfo.localVersion || 'none'} → {updateInfo.remoteVersion}
+                </p>
               </div>
               <button
                 onClick={handleApplyUpdates}
                 className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
               >
-                Apply Updates
+                Apply Update
               </button>
             </div>
           </div>
         )}
 
-        {updateInfo && updateInfo.updatesAvailable.length === 0 && (
+        {updateInfo && !updateInfo.needsUpdate && (
           <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-md">
-            <p className="text-green-900">All zones are up to date!</p>
+            <p className="text-green-900">Selectors are up to date!</p>
           </div>
         )}
 

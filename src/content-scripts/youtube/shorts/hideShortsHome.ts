@@ -19,10 +19,8 @@
     return;
   }
 
-  const SHORTS_SHELF_SELECTORS = [
-    'ytd-rich-shelf-renderer',
-    'ytd-rich-shelf-renderer[is-shorts]',
-  ];
+  // Get selectors from storage
+  const SHORTS_SHELF_SELECTORS = window.Debloater.getSelectors('youtube.shorts.home');
 
   function hideShortsShelf() {
     const removed = window.Debloater!.deleteElements(SHORTS_SHELF_SELECTORS);
@@ -39,8 +37,10 @@
     // Retry after delay for dynamic content
     setTimeout(hideShortsShelf, 1000);
     
-    // Observe for dynamic changes (single call with array)
-    window.Debloater!.observeAndRemove(SHORTS_SHELF_SELECTORS);
+    // Observe for dynamic changes
+    if (SHORTS_SHELF_SELECTORS && (Array.isArray(SHORTS_SHELF_SELECTORS) ? SHORTS_SHELF_SELECTORS.length > 0 : true)) {
+      window.Debloater!.observeAndRemove(SHORTS_SHELF_SELECTORS);
+    }
     
     console.log('[hideShortsHome] Active');
   }
