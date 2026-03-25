@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "Web Debloater",
-    "version": "2026.3.25.2052",
+    "version": "2026.3.25.2136",
     "description": "Auto-updating zone-based website debloater and enhancer",
     "permissions": [
         "storage",
@@ -29,7 +29,7 @@
                 "<all_urls>"
             ],
             "js": [
-                "content-scripts/trusted-types-bypass.js"
+                "page-scripts/trusted-types-bypass.js"
             ],
             "run_at": "document_start",
             "all_frames": false
