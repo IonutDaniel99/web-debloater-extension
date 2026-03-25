@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
-import { copyFileSync, mkdirSync, readdirSync, statSync, writeFileSync, readFileSync } from 'fs';
+import { copyFileSync, mkdirSync, readdirSync, statSync, writeFileSync, readFileSync, existsSync, rmSync, renameSync } from 'fs';
 import { join } from 'path';
 import * as esbuild from 'esbuild';
 
@@ -88,7 +88,7 @@ export default defineConfig({
         // Service worker (background script)
         'service-worker': resolve(__dirname, 'src/core/service-worker.ts'),
         // Web page
-        options: resolve(__dirname, 'src/webpage/index.html'),
+        index: resolve(__dirname, 'index.html'),
       },
       output: {
         entryFileNames: (chunkInfo) => {

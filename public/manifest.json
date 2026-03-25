@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "Web Debloater",
-    "version": "2026.3.25.1257",
+    "version": "2026.3.25.1440",
     "description": "Auto-updating zone-based website debloater and enhancer",
     "permissions": [
         "storage",
@@ -18,7 +18,7 @@
         "service_worker": "service-worker.js",
         "type": "module"
     },
-    "options_page": "src/webpage/index.html",
+    "options_page": "index.html",
     "action": {
         "default_title": "Web Debloater Settings"
     },
