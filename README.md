@@ -8,11 +8,19 @@ Chrome extension for removing unwanted elements from websites using dynamic, aut
 - 🔄 **Auto-Updates** - Selectors update automatically every 24 hours
 - 📦 **Bundled Fallback** - Works offline with bundled selectors
 - ⚙️ **Per-Site Settings** - Enable/disable features for each website
-- 🛠️ **Type-Safe** - Full TypeScript support with multiple selector formats
+- 🎯 **Smart Tab Refresh** - Only refreshes tabs for the site whose settings changed
+- 🛠️ **Type-Safe** - Full TypeScript support with multiple selector formats (CSS, XPath, ID, Class)
 
 **Currently Supports:**
 - YouTube (Hide Shorts button, shelf on home/subscriptions)
 - GitHub (Go to top button on PR pages)
+- Instagram (Remove home profile container)
+
+## 📚 Documentation
+
+- **[Changelog](./CHANGELOG.md)** - Detailed change history and version notes
+- **[Migration Guide](./MIGRATION.md)** - Upgrading from older versions
+- **[Developer Docs](./docs/)** - Guides for adding sites and features
 
 ---
 
@@ -512,6 +520,44 @@ export type SelectorInput =
 3. Build and test
 4. Upload new version to store
 5. For selector-only updates, just update remote `selectors.json`
+
+---
+
+## Changelog
+
+### March 25, 2026 - Instagram Support & Major Improvements
+
+**New Features:**
+- ✨ **Instagram Support** - Added full Instagram integration with home profile container removal
+- 🎨 **Class Selector Type** - New `class` selector type for multi-class CSS matching (e.g., `"x1dr59a3 x13vifvy x7vhb2i"`)
+- 🎯 **Site-Specific Tab Refresh** - Tabs now only refresh for the site whose settings changed (not all tabs)
+
+**Improvements:**
+- 🔧 **URL Pattern Matching** - Fixed patterns to properly handle query parameters (e.g., `?theme=dark`)
+- 📁 **Project Restructure** - Reorganized `content-scripts/` to `page-scripts/` for better clarity
+- ⚡ **Build Optimization** - Simplified Vite config, skip `_config.ts` files from compilation
+- 🛠️ **Script Injection** - Fixed injection paths and added proper error handling
+
+**Technical Changes:**
+- Added `refreshTabsForSite(siteId)` method for targeted tab reloading
+- Updated manifest permissions to include `*://*.instagram.com/*`
+- Added web accessible resources for Instagram scripts
+- Enhanced selector system with space-separated class name support
+- Improved URL regex patterns: `instagram\.com/?(?:\\?.*)?$`
+
+**Files Changed:**
+- Added: `src/page-scripts/instagram/` (config and scripts)
+- Added: `public/icons/instagram.svg`
+- Modified: `src/core/script-injector.ts` (site-specific refresh)
+- Modified: `src/core/dom-utils.ts` (class selector type)
+- Modified: `vite.config.ts` (build improvements)
+- Modified: `public/manifest.json` (Instagram permissions)
+- Modified: `config/selectors.json` (class type support)
+
+**Documentation:**
+- Added comprehensive guides in `docs/` for adding sites and features
+- Updated README with class selector examples
+- Added Instagram to supported sites list
 
 ---
 

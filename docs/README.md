@@ -33,16 +33,19 @@ Welcome to the Web Debloater Extension documentation! This folder contains guide
 ```
 web-debloater-extension/
 ├── config/
-│   ├── scripts.ts          # Register all scripts here
-│   └── selectors.json      # CSS selectors for removal scripts
+│   ├── selectors.json      # CSS selectors for removal scripts
+│   └── env.ts              # Environment config
 ├── src/
-│   ├── content-scripts/    # Your scripts go here
+│   ├── page-scripts/       # Your scripts go here
 │   │   ├── youtube/
 │   │   │   ├── remove/    # Removal scripts
 │   │   │   └── add/       # Enhancement scripts
-│   │   └── github/
-│   │       ├── remove/
-│   │       └── add/
+│   │   ├── github/
+│   │   │   ├── remove/
+│   │   │   └── add/
+│   │   ├── instagram/
+│   │   │   └── remove/
+│   │   └── scripts.ts     # Central registration
 │   ├── core/              # Shared utilities
 │   │   └── dom-utils.ts   # Helper functions
 │   └── webpage/           # Settings UI
@@ -72,7 +75,7 @@ npm run dev
 - **Use DevTools** - Inspect elements to find selectors (F12)
 - **Check console** - Look for your `console.log()` messages
 - **Test thoroughly** - Toggle scripts on/off, test on different pages
-- **Follow patterns** - See existing scripts in `src/content-scripts/`
+- **Follow patterns** - See existing scripts in `src/page-scripts/`
 
 ## 🤝 Contributing
 
@@ -92,7 +95,7 @@ When adding new scripts:
 
 ## ❓ Need Help?
 
-- Check existing scripts in `src/content-scripts/` for examples
+- Check existing scripts in `src/page-scripts/` for examples
 - Look at `core/dom-utils.ts` for available helper functions
 - Read the inline comments in the codebase
 - Open an issue if you find problems
