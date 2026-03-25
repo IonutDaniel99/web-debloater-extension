@@ -5,21 +5,14 @@
  * Scripts are only injected if enabled in global settings.
  */
 
-import { ENV } from './env';
-
-/**
- * Remote Selectors URL
- * Loaded from .env file (VITE_SELECTORS_URL)
- */
-export const SELECTORS_URL = ENV.SELECTORS_URL;
-
 export interface ScriptConfig {
   id: string; // Unique script ID (used in settings)
   name: string; // Display name
   description: string; // What the script does
   scriptPath: string; // Path relative to content-scripts/
   defaultEnabled: boolean; // Default enabled state
-}
+  type: 'enhancement' | 'removal'; // Type of script (for UI categorization)
+  }
 
 export interface PathScript extends ScriptConfig {
   urlPattern: string; // URL pattern regex for this specific path
@@ -47,6 +40,7 @@ export const SCRIPTS_CONFIG: SiteConfig[] = [
         description: 'Remove the "Shorts" button from YouTube navigation',
         scriptPath: 'youtube/remove/shorts/hideShortsButton.js',
         defaultEnabled: true,
+        type: 'removal',
       },
     ],
     pathScripts: [
@@ -56,6 +50,7 @@ export const SCRIPTS_CONFIG: SiteConfig[] = [
         description: 'Remove Shorts shelf from YouTube home page',
         scriptPath: 'youtube/remove/shorts/hideShortsHome.js',
         urlPattern: 'youtube\\.com/?$',
+        type: 'removal',
         defaultEnabled: true,
       },
       {
@@ -64,6 +59,7 @@ export const SCRIPTS_CONFIG: SiteConfig[] = [
         description: 'Remove shorts shelves from subscriptions pages',
         scriptPath: 'youtube/remove/shorts/hideShortsSubscriptions.js',
         urlPattern: 'youtube\\..*/feed/.*',
+        type: 'removal',
         defaultEnabled: true,
       },
     ],
@@ -80,53 +76,11 @@ export const SCRIPTS_CONFIG: SiteConfig[] = [
         description: 'Add floating "Go to Top" button on all GitHub pages',
         scriptPath: 'github/add/goToTopButton.js',
         defaultEnabled: true,
+        type: 'enhancement',
       },
     ],
     pathScripts: [],
   },
 ];
 
-/**
- * Get scripts that should run for a given URL
- */
-export function getScriptsForURL(url: string): {
-  siteId: string;
-  scripts: Array<{ id: string; scriptPath: string }>;
-} | null {
-  for (const site of SCRIPTS_CONFIG) {
-    // Check if URL matches site's base pattern
-    if (!matchesPattern(url, site.urlPatternBase)) continue;
 
-    const scriptsToRun: Array<{ id: string; scriptPath: string }> = [];
-    
-    // Always add default scripts
-    site.defaultScripts.forEach(script => {
-      scriptsToRun.push({ id: script.id, scriptPath: script.scriptPath });
-    });
-    
-    // Add path-specific scripts if URL matches
-    site.pathScripts.forEach(script => {
-      if (matchesPattern(url, script.urlPattern)) {
-        scriptsToRun.push({ id: script.id, scriptPath: script.scriptPath });
-      }
-    });
-
-    return { 
-      siteId: site.id,
-      scripts: scriptsToRun 
-    };
-  }
-
-  return null;
-}
-
-/**
- * Simple regex pattern matching
- */
-function matchesPattern(url: string, pattern: string): boolean {
-  try {
-    return new RegExp(pattern, 'i').test(url);
-  } catch {
-    return false;
-  }
-}

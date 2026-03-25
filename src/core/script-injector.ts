@@ -5,7 +5,7 @@
  * Simple logic: if script is enabled in settings, inject it. Otherwise, don't.
  */
 
-import { getScriptsForURL } from '@config/scripts';
+import { SCRIPTS_CONFIG } from '@config/scripts';
 import { StorageManager } from './storage-manager';
 import { loadSelectors } from './selector-manager';
 import { BUNDLED_SELECTORS } from './bundled-selectors';
@@ -165,3 +165,47 @@ export class ScriptInjector {
   }
 }
 
+/**
+ * Get scripts that should run for a given URL
+ */
+export function getScriptsForURL(url: string): {
+  siteId: string;
+  scripts: Array<{ id: string; scriptPath: string }>;
+} | null {
+  for (const site of SCRIPTS_CONFIG) {
+    // Check if URL matches site's base pattern
+    if (!matchesPattern(url, site.urlPatternBase)) continue;
+
+    const scriptsToRun: Array<{ id: string; scriptPath: string }> = [];
+    
+    // Always add default scripts
+    site.defaultScripts.forEach(script => {
+      scriptsToRun.push({ id: script.id, scriptPath: script.scriptPath });
+    });
+    
+    // Add path-specific scripts if URL matches
+    site.pathScripts.forEach(script => {
+      if (matchesPattern(url, script.urlPattern)) {
+        scriptsToRun.push({ id: script.id, scriptPath: script.scriptPath });
+      }
+    });
+
+    return { 
+      siteId: site.id,
+      scripts: scriptsToRun 
+    };
+  }
+
+  return null;
+}
+
+/**
+ * Simple regex pattern matching
+ */
+function matchesPattern(url: string, pattern: string): boolean {
+  try {
+    return new RegExp(pattern, 'i').test(url);
+  } catch {
+    return false;
+  }
+}

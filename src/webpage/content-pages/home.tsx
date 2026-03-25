@@ -1,5 +1,5 @@
 import { useSettings } from "@/webpage/hooks/useSettings";
-import { Button } from "../../ui"
+import { Button } from "../components/ui"
 
 export const Home = () => {
 
@@ -55,33 +55,6 @@ export const Home = () => {
                     )}
                 </div>
             </header>
-
-
-            <main className="flex-1 max-w-4xl mx-auto w-full px-4 py-12">
-                <section className="mb-12">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-6">Features</h2>
-                    <ul className="space-y-3">
-                        <li className="flex items-center text-gray-700">
-                            <span className="w-2 h-2 bg-blue-500 rounded-full mr-3"></span>
-                            Remove unnecessary scripts
-                        </li>
-                        <li className="flex items-center text-gray-700">
-                            <span className="w-2 h-2 bg-blue-500 rounded-full mr-3"></span>
-                            Block tracking elements
-                        </li>
-                        <li className="flex items-center text-gray-700">
-                            <span className="w-2 h-2 bg-blue-500 rounded-full mr-3"></span>
-                            Optimize page performance
-                        </li>
-                    </ul>
-                </section>
-
-                <section className="text-center">
-                    <button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-lg transition">
-                        Get Started
-                    </button>
-                </section>
-            </main>
         </div>
     )
 }

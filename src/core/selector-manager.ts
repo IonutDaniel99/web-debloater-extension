@@ -8,7 +8,7 @@
 /// <reference types="chrome"/>
 
 import type { SelectorInput } from './dom-utils';
-import { SELECTORS_URL } from '@config/scripts';
+import { SELECTORS_URL } from './update-checker';
 
 export interface SelectorsData {
   version: string;

@@ -10,9 +10,10 @@
 
 import { VersionManager } from './version-manager';
 import { StorageManager } from './storage-manager';
-import { SCRIPTS_CONFIG, SELECTORS_URL } from '@config/scripts';
+import { SCRIPTS_CONFIG } from '@config/scripts';
 import { getSelectorVersion, updateSelectors, initializeSelectors } from './selector-manager';
 import { BUNDLED_SELECTORS } from './bundled-selectors';
+import { ENV } from '@config/env';
 
 export interface SelectorUpdateCheckResult {
   success: boolean;
@@ -28,6 +29,12 @@ export interface SelectorUpdateApplyResult {
   version?: string;
   error?: string;
 }
+
+/**
+ * Remote Selectors URL
+ * Loaded from .env file (VITE_SELECTORS_URL)
+ */
+export const SELECTORS_URL = ENV.SELECTORS_URL;
 
 export class UpdateChecker {
   /**

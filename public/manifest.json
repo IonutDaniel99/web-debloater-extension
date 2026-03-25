@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "Web Debloater",
-    "version": "2026.3.25.1440",
+    "version": "2026.3.25.1546",
     "description": "Auto-updating zone-based website debloater and enhancer",
     "permissions": [
         "storage",
