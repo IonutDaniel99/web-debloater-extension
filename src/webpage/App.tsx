@@ -1,6 +1,6 @@
 import MainLayout from "./components/layout/MainLayout/MainLayout";
-import { ThemeProvider } from "./components/theme-provider";
 import { Toaster } from '@/webpage/components/ui/sonner';
+import { ThemeProvider } from "./components/ThemeProvider";
 
 
 function App() {

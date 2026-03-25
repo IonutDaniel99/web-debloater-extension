@@ -9,7 +9,7 @@ export const ENV = {
   /**
    * URL for remote selectors.json file
    */
-  SELECTORS_URL: import.meta.env.VITE_SELECTORS_URL || 'https://example.com/selectors.json',
+  SELECTORS_URL: import.meta.env.VITE_SELECTORS_URL || 'https://raw.githubusercontent.com/IonutDaniel99/debloater-selectors/main/selectors.json',
 
   /**
    * Update check interval in hours
