@@ -51,7 +51,7 @@ export const Home = () => {
                 Browser Extension
               </div>
               <h1 className="text-3xl font-bold text-foreground mb-3 leading-tight">
-                Web Debloater
+                Web Debloater & Enhancer
               </h1>
               <p className="text-sm text-muted-foreground max-w-2xl leading-relaxed">
                 Take control of your browsing experience. Remove clutter, add enhancements, 

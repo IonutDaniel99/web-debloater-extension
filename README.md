@@ -1,4 +1,4 @@
-# Web Debloater Extension
+# Web Debloater & Enhancer Extension
 
 Chrome extension for removing unwanted elements from websites using dynamic, auto-updating selectors.
 
@@ -399,7 +399,7 @@ Changes to React components (web page) hot reload automatically. TypeScript modu
 ### Debugging
 
 **Service Worker:**
-- `chrome://extensions/` → Web Debloater → service worker link
+- `chrome://extensions/` → Web Debloater & Enhancer → service worker link
 - View background script console
 
 **Content Scripts:**

@@ -1,6 +1,6 @@
-# Web Debloater Extension - Documentation
+# Web Debloater & Enhancer Extension - Documentation
 
-Welcome to the Web Debloater Extension documentation! This folder contains guides for extending and customizing the extension.
+Welcome to the Web Debloater & Enhancer Extension documentation! This folder contains guides for extending and customizing the extension.
 
 ## 📚 Available Guides
 

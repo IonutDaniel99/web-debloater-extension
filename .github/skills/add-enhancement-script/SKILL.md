@@ -6,7 +6,7 @@ argument-hint: 'Brief description of enhancement to add (e.g., "add go to top bu
 
 # Add Enhancement Script to Site
 
-Guided workflow for adding a new enhancement/feature script to an existing site in the Web Debloater extension.
+Guided workflow for adding a new enhancement/feature script to an existing site in the Web Debloater & Enhancer extension.
 
 ## When to Use
 

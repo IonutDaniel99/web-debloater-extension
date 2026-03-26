@@ -24,7 +24,7 @@ export function Sidebar({ pages }: { pages: PagesInterface[] }) {
       {/* Header */}
       <div className="p-4 border-b border-border">
         <h1 className="text-lg font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
-          Web Debloater
+          Web Debloater & Enhancer
         </h1>
         <p className="text-xs text-muted-foreground mt-0.5">
           Clean browsing experience

@@ -6,7 +6,7 @@ argument-hint: 'Brief description of what to remove (e.g., "hide reels button on
 
 # Add Removal Script to Site
 
-Guided workflow for adding a new content removal script to an existing site in the Web Debloater extension.
+Guided workflow for adding a new content removal script to an existing site in the Web Debloater & Enhancer extension.
 
 ## When to Use
 

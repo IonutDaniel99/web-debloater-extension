@@ -1,7 +1,7 @@
 {
   "name": "web-debloater-extension",
   "version": "1.0.2",
-  "description": "Zone-based auto-updating Chrome extension for debloating websites",
+  "description": "Zone-based auto-updating Chrome extension for debloating and enhancing websites",
   "type": "module",
   "scripts": {
     "dev": "vite",

@@ -169,7 +169,7 @@ async function notifyUpdatesAvailable(count: number) {
   await chrome.notifications.create({
     type: 'basic',
     iconUrl: 'icons/icon48.png',
-    title: 'Web Debloater Updates Available',
+    title: 'Web Debloater & Enhancer Updates Available',
     message: `${count} zone update(s) available. Click to open settings.`,
     priority: 1,
   });

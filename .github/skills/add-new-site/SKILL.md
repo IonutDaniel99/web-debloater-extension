@@ -1,12 +1,12 @@
 ---
 name: add-new-site
-description: 'Add a completely new site to the Web Debloater extension (e.g., Twitter, Reddit, Facebook). Creates all necessary structure: config, page component, icon, manifest permissions, and example script. Complete setup workflow.'
+description: 'Add a completely new site to the Web Debloater & Enhancer extension (e.g., Twitter, Reddit, Facebook). Creates all necessary structure: config, page component, icon, manifest permissions, and example script. Complete setup workflow.'
 argument-hint: 'Name of site to add (e.g., "Twitter", "Reddit")'
 ---
 
 # Add New Site to Extension
 
-Comprehensive workflow for adding a completely new site to the Web Debloater extension.
+Comprehensive workflow for adding a completely new site to the Web Debloater & Enhancer extension.
 
 ## When to Use
 

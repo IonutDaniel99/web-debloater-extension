@@ -1,6 +1,6 @@
 {
     "manifest_version": 3,
-    "name": "Web Debloater",
+    "name": "Web Debloater & Enhancer",
     "version": "2026.3.26.1439",
     "description": "Auto-updating zone-based website debloater and enhancer",
     "permissions": [
@@ -22,7 +22,7 @@
     },
     "options_page": "index.html",
     "action": {
-        "default_title": "Web Debloater Settings"
+        "default_title": "Web Debloater & Enhancer Settings"
     },
     "content_scripts": [
         {
