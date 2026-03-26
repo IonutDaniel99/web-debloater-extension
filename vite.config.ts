@@ -69,6 +69,10 @@ export default defineConfig({
           resolve(__dirname, 'src/page-scripts/instagram'),
           resolve(__dirname, 'dist/scripts/instagram')
         );
+        await compileAndCopyDir(
+          resolve(__dirname, 'src/page-scripts/whatsapp'),
+          resolve(__dirname, 'dist/scripts/whatsapp')
+        );
         
         // Compile dom-utils.ts to core directory
         mkdirSync(resolve(__dirname, 'dist/scripts/core'), { recursive: true });

@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "Web Debloater",
-    "version": "2026.3.25.2136",
+    "version": "2026.3.26.1224",
     "description": "Auto-updating zone-based website debloater and enhancer",
     "permissions": [
         "storage",
@@ -13,6 +13,7 @@
         "*://*.youtube.com/*",
         "*://*.github.com/*",
         "*://*.instagram.com/*",
+        "*://web.whatsapp.com/*",
         "https://raw.githubusercontent.com/*"
     ],
     "background": {
@@ -40,7 +41,8 @@
             "resources": [
                 "scripts/youtube/**/*.js",
                 "scripts/github/**/*.js",
-                "scripts/instagram/**/*.js"
+                "scripts/instagram/**/*.js",
+                "scripts/whatsapp/**/*.js"
             ],
             "matches": [
                 "<all_urls>"

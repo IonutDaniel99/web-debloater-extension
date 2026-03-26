@@ -8,6 +8,7 @@
 import { GITHUB_CONFIG } from "./github/github_config";
 import { INSTAGRAM_CONFIG } from "./instagram/instagram_config";
 import { YOUTUBE_CONFIG } from "./youtube/youtube_config";
+import { WHATSAPP_CONFIG } from "./whatsapp/whatsapp_config";
 
 export interface ScriptConfig {
   id: string; // Unique script ID (used in settings)
@@ -39,4 +40,5 @@ export const SCRIPTS_CONFIG: SiteConfig[] = [
   YOUTUBE_CONFIG,
   GITHUB_CONFIG,
   INSTAGRAM_CONFIG,
+  WHATSAPP_CONFIG,
 ];

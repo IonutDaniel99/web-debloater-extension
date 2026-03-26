@@ -156,10 +156,11 @@ FILES TO UPDATE:
   • src/page-scripts/scripts.ts
   • src/webpage/configs/pages.tsx
   • public/manifest.json
+  • vite.config.ts
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-This will create {createExample ? '13' : '12'} file operations.
+This will create {createExample ? '14' : '13'} file operations.
 Proceed? (y/n):
 ```
 
@@ -461,7 +462,45 @@ Add to `web_accessible_resources`:
 "scripts/{siteId}/**/*.js"
 ```
 
-### Step 11: Update Selectors (if example created)
+### Step 11: Update Build Configuration
+
+**Path**: `vite.config.ts`
+
+Add the site's scripts directory to the build process.
+
+Find the section with `compileAndCopyDir` calls and add:
+
+```typescript
+await compileAndCopyDir(
+  resolve(__dirname, 'src/page-scripts/{siteId}'),
+  resolve(__dirname, 'dist/scripts/{siteId}')
+);
+```
+
+**Example**:
+```typescript
+// Compile and copy scripts
+await compileAndCopyDir(
+  resolve(__dirname, 'src/page-scripts/youtube'),
+  resolve(__dirname, 'dist/scripts/youtube')
+);
+await compileAndCopyDir(
+  resolve(__dirname, 'src/page-scripts/github'),
+  resolve(__dirname, 'dist/scripts/github')
+);
+await compileAndCopyDir(
+  resolve(__dirname, 'src/page-scripts/instagram'),
+  resolve(__dirname, 'dist/scripts/instagram')
+);
+await compileAndCopyDir(
+  resolve(__dirname, 'src/page-scripts/{siteId}'),  // ← Add here
+  resolve(__dirname, 'dist/scripts/{siteId}')
+);
+```
+
+⚠️ **Important**: Without this step, the TypeScript scripts won't be compiled to JavaScript and the extension will fail to inject them!
+
+### Step 12: Update Selectors (if example created)
 
 If `createExample`, update **`config/selectors.json`**:
 
@@ -475,7 +514,7 @@ Add:
 }
 ```
 
-### Step 12: Report Success & Next Steps
+### Step 13: Report Success & Next Steps
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -498,6 +537,7 @@ UPDATED:
   • src/page-scripts/scripts.ts
   • src/webpage/configs/pages.tsx  
   • public/manifest.json
+  • vite.config.ts
   {createExample ? `• config/selectors.json` : ''}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -546,6 +586,8 @@ Page not appearing?
 Scripts not loading?
   → Check manifest.json permissions
   → Verify URL pattern matches actual URLs
+  → Ensure vite.config.ts includes the site directory
+  → Verify compiled .js files exist in dist/scripts/{siteId}/
 
 Build errors?
   → Run: npm run build

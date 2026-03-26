@@ -34,6 +34,12 @@
       }
     },
     "github": {
+    },
+    "whatsapp": {
+      "getWhatsappForWindows": {
+        "selector": "#side > div:nth-child(6) > div > div > div",
+        "type": "css"
+      }
     }
   }
 }
