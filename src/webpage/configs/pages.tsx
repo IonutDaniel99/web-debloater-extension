@@ -1,7 +1,4 @@
-import { YouTubePage } from '@/webpage/pages/youtube';
-import { GitHubPage } from '@/webpage/pages/github';
-import { InstagramPage } from '@/webpage/pages/instagram';
-import { WhatsAppPage } from '@/webpage/pages/whatsapp';
+import { DynamicSitePage } from '../components/layout/dynamic-site/DynamicSitePage';
 import { Home } from '../pages/home';
 
 export interface PagesInterface { 
@@ -18,22 +15,22 @@ export const PAGES: PagesInterface[] = [
   },
   {
     id: 'youtube',
-    element: <YouTubePage />,
+    element: <DynamicSitePage siteId="youtube" />,
     path: '/site/youtube'
   },
   {
     id: 'github',
-    element: <GitHubPage />,
+    element: <DynamicSitePage siteId="github" />,
     path: '/site/github'
   },
   {
     id: 'instagram',
-    element: <InstagramPage />,
+    element: <DynamicSitePage siteId="instagram" />,
     path: '/site/instagram'
   },
   {
     id: 'whatsapp',
-    element: <WhatsAppPage />,
+    element: <DynamicSitePage siteId="whatsapp" />,
     path: '/site/whatsapp'
   }
 ];

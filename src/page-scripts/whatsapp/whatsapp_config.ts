@@ -2,20 +2,16 @@ import { SiteConfig } from "../scripts";
 
 /**
  * WHATSAPP CONFIG
+ * 
+ * Most WhatsApp scripts have been migrated to data-driven architecture.
+ * Only complex bundled scripts remain here.
+ * See: config/scripts-config.json
  */
 export const WHATSAPP_CONFIG: SiteConfig = {
   id: "whatsapp",
   name: "WhatsApp",
   urlPatternBase: "web\\.whatsapp\\.com",
   defaultScripts: [
-    {
-      id: "removeGetWhatsappForWindows",
-      name: "Remove \"Get WhatsApp for Windows\"",
-      description: "Remove the \"Get WhatsApp for Windows\" promotional element from WhatsApp Web",
-      scriptPath: "whatsapp/remove/getWhatsappForWindows.js",
-      defaultEnabled: false,
-      type: "removal",
-    },
     {
       id: "privacyBlurControls",
       name: "Privacy Blur Controls",
@@ -25,7 +21,5 @@ export const WHATSAPP_CONFIG: SiteConfig = {
       type: "enhancement",
     },
   ],
-  pathScripts: [
-    // Add path-specific scripts here
-  ],
+  pathScripts: [],
 };

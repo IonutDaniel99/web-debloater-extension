@@ -1,26 +1,35 @@
 # Web Debloater & Enhancer Extension
 
-Chrome extension for removing unwanted elements from websites using dynamic, auto-updating selectors.
+Chrome extension for removing clutter and adding enhancements to websites using a data-driven architecture with auto-updating configurations.
 
 ## Features
 
-- 🎯 **Dynamic Selectors** - Update selectors without releasing new extension versions
-- 🔄 **Auto-Updates** - Selectors update automatically every 24 hours
-- 📦 **Bundled Fallback** - Works offline with bundled selectors
-- ⚙️ **Per-Site Settings** - Enable/disable features for each website
-- 🎯 **Smart Tab Refresh** - Only refreshes tabs for the site whose settings changed
-- 🛠️ **Type-Safe** - Full TypeScript support with multiple selector formats (CSS, XPath, ID, Class)
+- 🎯 **Data-Driven** - All scripts defined in JSON, no TypeScript files needed
+- 🔄 **Auto-Updates** - Scripts update every 6 hours from GitHub (no Chrome Store review)
+- 📦 **Generic Engines** - Removal & enhancement engines execute JSON configs
+- ⚙️ **Dynamic UI** - Settings page auto-generates from config
+- 🛠️ **Remote Deployment** - Push to GitHub, users get updates automatically
+- 🎨 **Predefined Actions** - 20+ built-in actions (scroll, copy, toggle, etc.)
 
 **Currently Supports:**
 - YouTube (Hide Shorts button, shelf on home/subscriptions)
 - GitHub (Go to top button on PR pages)
 - Instagram (Remove home profile container)
+- WhatsApp Web (Privacy blur controls, remove "Get WhatsApp for Windows")
+
+## 🏗️ Architecture
+
+**Data-Driven System:**
+- `config/scripts-config.json` - All script definitions
+- `src/engines/` - Generic removal & enhancement engines
+- `config.ts` - Central configuration (GitHub URL, update interval, etc.)
+- Remote updates via GitHub - no extension rebuild needed
 
 ## 📚 Documentation
 
-- **[Changelog](./CHANGELOG.md)** - Detailed change history and version notes
+- **[Docs](./docs/)** - Architecture guides and quick start
+- **[Changelog](./CHANGELOG.md)** - Version history
 - **[Migration Guide](./MIGRATION.md)** - Upgrading from older versions
-- **[Developer Docs](./docs/)** - Guides for adding sites and features
 
 ---
 
@@ -35,18 +44,24 @@ Chrome extension for removing unwanted elements from websites using dynamic, aut
 
 ```bash
 # 1. Clone repository
-git clone https://github.com/YOUR_USERNAME/web-debloater-extension
+git clone https://github.com/IonutDaniel99/web-debloater-extension
 cd web-debloater-extension
 
 # 2. Install dependencies
 npm install
 
-# 3. Configure environment
-cp .env.example .env
-# Edit .env and set VITE_SELECTORS_URL to your selectors.json URL
+# 3. Edit config.ts (optional)
+# Set your GitHub repo URL for remote updates
 
 # 4. Build extension
 npm run build
+
+# 5. Load in Chrome
+# - Open chrome://extensions/
+# - Enable "Developer mode"
+# - Click "Load unpacked"
+# - Select the dist/ folder
+```
 
 # 5. Load in Chrome
 # - Open chrome://extensions/
@@ -59,57 +74,54 @@ npm run build
 
 ## Configuration
 
-### Environment Variables
+All configuration is in `config.ts` (root of project):
 
-Create a `.env` file (copy from `.env.example`):
+```typescript
+// Your GitHub repository
+export const REMOTE_CONFIG_URL = 
+  'https://raw.githubusercontent.com/IonutDaniel99/web-debloater-extension/main/config/scripts-config.json';
 
-```bash
-# Selector Update URL
-VITE_SELECTORS_URL=https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/selectors.json
+// Auto-update interval (hours)
+export const AUTO_UPDATE_INTERVAL_HOURS = 6;
 
-# Update check interval (hours)
-VITE_UPDATE_INTERVAL_HOURS=24
+// Storage keys
+export const STORAGE_KEYS = {
+  REMOTE_CONFIG: 'remote_scripts_config',
+  REMOTE_CONFIG_VERSION: 'remote_scripts_config_version',
+} as const;
 
-# Alarm name for Chrome alarms
-VITE_ALARM_NAME=selector-update-check
+// Alarm names
+export const ALARMS = {
+  REMOTE_CONFIG_UPDATE: 'REMOTE_CONFIG_ALARM',
+} as const;
 ```
 
-**Required:**
-- `VITE_SELECTORS_URL` - URL to your remote `selectors.json` file
+**To change GitHub URL:**
+Edit `config.ts` and update `REMOTE_CONFIG_URL` to your repository.
 
-**Optional:**
-- `VITE_UPDATE_INTERVAL_HOURS` - Default: 24
-- `VITE_ALARM_NAME` - Default: selector-update-check
+**To change update interval:**
+Edit `config.ts` and change `AUTO_UPDATE_INTERVAL_HOURS` (default: 6 hours).
 
-### 1. Set Up Remote Selectors (Required)
+### Set Up Remote Updates
 
-### 1. Set Up Remote Selectors (Required)
-
-**Option A: GitHub (Recommended)**
-
-1. Create a public repository (e.g., `debloater-selectors`)
-2. Upload `config/selectors.json`:
+**1. Push scripts-config.json to GitHub:**
 
 ```bash
-git init
-git add config/selectors.json
-git commit -m "Add selectors"
-git remote add origin https://github.com/YOUR_USERNAME/debloater-selectors.git
-git push -u origin main
+git add config/scripts-config.json
+git commit -m "Add scripts config"
+git push
 ```
 
-3. Update `.env`:
-```bash
-VITE_SELECTORS_URL=https://raw.githubusercontent.com/YOUR_USERNAME/debloater-selectors/main/selectors.json
+**2. Verify URL in config.ts:**
+```typescript
+export const REMOTE_CONFIG_URL = 
+  'https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/config/scripts-config.json';
 ```
 
-**Option B: Your Own Server**
-
-1. Upload `config/selectors.json` to your server
-2. Update `.env`:
-```bash
-VITE_SELECTORS_URL=https://your-domain.com/selectors.json
-```
+**3. Users get updates automatically:**
+- Extension checks for updates every 6 hours
+- Users can manually click "Check for Updates"
+- No Chrome Store submission needed!
 
 **Option C: Skip Remote (Local Only)**
 
@@ -138,54 +150,144 @@ npm run version:update
 ## Project Structure
 
 ```
+config.ts                       # Central configuration
 config/
-  ├── scripts.ts          # Site and script configuration
-  └── selectors.json      # Bundled selectors (updated remotely)
+  └── scripts-config.json       # All script definitions
 
 src/
-  ├── background/
-  │   └── service-worker.ts     # Background script
-  ├── content-scripts/
-  │   ├── youtube/              # YouTube scripts
-  │   └── github/               # GitHub scripts
+  ├── engines/                  # Generic engines
+  │   ├── removal-engine.ts    # Executes removals
+  │   ├── enhancement-engine.ts # Executes enhancements
+  │   └── predefined-actions.ts # 20+ built-in actions
   ├── core/
-  │   ├── dom-utils.ts          # DOM manipulation utilities
-  │   ├── selector-manager.ts   # Selector storage/updates
-  │   ├── script-injector.ts    # Script injection logic
-  │   ├── storage-manager.ts    # Settings storage
-  │   ├── update-checker.ts     # Update checking
-  │   └── version-manager.ts    # Version comparison
+  │   ├── remote-config.ts     # Fetch/cache configs
+  │   ├── script-injector.ts   # Hybrid injection
+  │   ├── service-worker.ts    # Background script
+  │   └── storage-manager.ts   # Settings storage
+  ├── page-scripts/            # Bundled scripts (complex only)
+  │   └── whatsapp/add/privacyBlurControls.ts
   └── webpage/
-      └── App.tsx               # Web page UI
+      ├── pages/
+      │   ├── home.tsx
+      │   └── DynamicSitePage.tsx  # Dynamic site pages
+      └── components/
+          └── layout/dynamic-site/
 
-public/
-  └── manifest.json             # Extension manifest
-
-dist/                           # Build output (load this in Chrome)
+dist/                          # Build output (load this in Chrome)
 ```
 
 ---
 
-## Selector System
+## Adding Scripts
 
-### Selector Format
+### Add Removal Script
 
-Selectors are stored in `config/selectors.json` with three supported formats:
+Edit `config/scripts-config.json`:
 
 ```json
 {
-  "version": "1.0.0",
-  "selectors": {
-    "youtube": {
-      "shorts": {
-        "button": "ytd-mini-guide-entry-renderer:has(a[href*=\"/shorts\"])",
-        "home": [
-          "ytd-rich-shelf-renderer",
-          "ytd-rich-shelf-renderer[is-shorts]"
-        ],
-        "subscriptions": [
-          "ytd-reel-shelf-renderer",
-          { "selector": "shorts-shelf", "type": "id" },
+  "hideElement": {
+    "id": "hideElement",
+    "name": "Hide Element Name",
+    "description": "Removes element from page",
+    "type": "removal",
+    "defaultEnabled": true,
+    "removal": {
+      "selectorPath": "div.unwanted-element",
+      "observeChanges": true
+    }
+  }
+}
+```
+
+### Add Enhancement - Floating Button
+
+```json
+{
+  "scrollButton": {
+    "id": "scrollButton",
+    "name": "Scroll to Top",
+    "description": "Adds floating scroll button",
+    "type": "enhancement",
+    "defaultEnabled": true,
+    "enhancement": {
+      "enhancementType": "floating-button",
+      "floatingButton": {
+        "text": "↑ Top",
+        "style": {
+          "position": "bottom-right",
+          "backgroundColor": "#4CAF50"
+        },
+        "showOnScroll": 300,
+        "onClick": "scrollToTop"
+      }
+    }
+  }
+}
+```
+
+### Add Enhancement - Keyboard Shortcut
+
+```json
+{
+  "keyboardShortcut": {
+    "id": "keyboardShortcut",
+    "name": "Scroll Shortcuts",
+    "description": "Ctrl+T to scroll to top",
+    "type": "enhancement",
+    "defaultEnabled": true,
+    "enhancement": {
+      "enhancementType": "keyboard-shortcut",
+      "keyboardShortcut": {
+        "keys": "ctrl+t",
+        "action": "scrollToTop",
+        "preventDefault": true
+      }
+    }
+  }
+}
+```
+
+### Deploy Changes
+
+```bash
+git add config/scripts-config.json
+git commit -m "Add new script"
+git push
+
+# Users get update automatically within 6 hours
+# Or they can click "Check for Updates" button
+```
+
+---
+
+## Available Predefined Actions
+
+See `src/engines/predefined-actions.ts`:
+
+- `scrollToTop` - Scroll to page top
+- `scrollToBottom` - Scroll to page bottom
+- `copyToClipboard` - Copy text to clipboard
+- `openInNewTab` - Open URL in new tab
+- `toggleDarkMode` - Toggle dark mode
+- `printPage` - Print current page
+- `downloadPageAsImage` - Save page as image
+- `focusSearchBox` - Focus search input
+- And 15+ more...
+
+---
+
+## Selector System (Legacy)
+
+> **Note:** Selectors are now part of script configs in `scripts-config.json`
+
+### Testing Selectors
+
+```javascript
+// Browser console
+document.querySelectorAll('YOUR_SELECTOR')
+// Should highlight the elements you want to remove/target
+```
           { "selector": "x1dr59a3 x13vifvy x7vhb2i", "type": "class" }
         ]
       }
@@ -304,85 +406,34 @@ window.Debloater.addElements('<div>Hello</div>', 'body', 'append');
 
 ## Adding New Sites
 
-### 1. Add Site Configuration
-
-Edit `config/scripts.ts`:
-
-```typescript
-export const SCRIPTS_CONFIG: SiteConfig[] = [
-  // ... existing sites
-  {
-    id: 'twitter',
-    name: 'Twitter',
-    icon: '🐦',
-    urlPatternBase: 'twitter\\.com',
-    sharedScript: 'core/dom-utils.js',
-    defaultScripts: [
-      {
-        id: 'hidePromoted',
-        name: 'Hide Promoted Tweets',
-        description: 'Remove promoted content',
-        scriptPath: 'twitter/hidePromoted.js',
-        defaultEnabled: true,
-      }
-    ],
-    pathScripts: []
-  }
-];
-```
-
-### 2. Add Selectors
-
-Edit `config/selectors.json`:
+Edit `config/scripts-config.json` and add a new site entry:
 
 ```json
 {
-  "selectors": {
-    "twitter": {
-      "promoted": ["div[data-testid='promoted']"]
+  "version": "1.0.0",
+  "lastUpdated": "2026-03-27",
+  "sites": {
+    "newsite": {
+      "name": "New Site",
+      "urlPatternBase": "newsite\\.com",
+      "scripts": {
+        "hideAds": {
+          "id": "hideAds",
+          "name": "Hide Ads",
+          "description": "Remove ads from site",
+          "type": "removal",
+          "defaultEnabled": true,
+          "removal": {
+            "selectorPath": "div.ad-container"
+          }
+        }
+      }
     }
   }
 }
 ```
 
-### 3. Create Content Script
-
-Create `src/content-scripts/twitter/hidePromoted.ts`:
-
-```typescript
-(function() {
-  'use strict';
-  
-  if (!window.Debloater) {
-    console.error('Debloater utilities not loaded!');
-    return;
-  }
-
-  const selectors = window.Debloater.getSelectors('twitter.promoted');
-  window.Debloater.deleteElements(selectors);
-  window.Debloater.observeAndRemove(selectors);
-})();
-```
-
-### 4. Update Manifest
-
-Add host permission to `public/manifest.json`:
-
-```json
-{
-  "host_permissions": [
-    "*://*.youtube.com/*",
-    "*://*.github.com/*",
-    "*://*.twitter.com/*"
-  ]
-}
-```
-
-### 5. Rebuild
-
-```bash
-npm run build
-```
+Then add site icon and update `src/webpage/components/SiteIcon.tsx` if needed.
 
 ---
 
@@ -394,7 +445,7 @@ npm run build
 npm run dev
 ```
 
-Changes to React components (web page) hot reload automatically. TypeScript modules require rebuild.
+Changes to React components hot reload automatically.
 
 ### Debugging
 

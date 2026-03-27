@@ -11,7 +11,8 @@ import {
   TrendingUp
 } from "lucide-react";
 import { SiteIcon } from "../components/SiteIcon";
-import { SCRIPTS_CONFIG } from "@/page-scripts/scripts";
+import { useState, useEffect } from "react";
+import type { RemoteScriptsConfig } from '@/core/remote-config';
 
 export const Home = () => {
   const {
@@ -24,20 +25,39 @@ export const Home = () => {
     settings,
   } = useSettings();
 
-  // Calculate stats
-  const totalScripts = SCRIPTS_CONFIG.reduce((acc, site) => 
-    acc + site.defaultScripts.length + site.pathScripts.length, 0
-  );
+  const [remoteConfig, setRemoteConfig] = useState<RemoteScriptsConfig | null>(null);
 
-  const enabledScripts = SCRIPTS_CONFIG.reduce((acc, site) => {
-    const allScripts = [...site.defaultScripts, ...site.pathScripts];
-    const enabled = allScripts.filter(script => 
-      settings[site.id]?.[script.id]?.enabled !== false && script.defaultEnabled
-    ).length;
+  // Load remote config
+  useEffect(() => {
+    async function loadConfig() {
+      try {
+        const result = await new Promise<RemoteScriptsConfig | null>((resolve) => {
+          chrome.storage.local.get(['remote_scripts_config'], (result: any) => {
+            resolve(result.remote_scripts_config || null);
+          });
+        });
+        setRemoteConfig(result);
+      } catch (error) {
+        console.error('[Home] Failed to load config:', error);
+      }
+    }
+    loadConfig();
+  }, []);
+
+  // Calculate stats from remote config
+  const totalScripts = remoteConfig ? Object.values(remoteConfig.sites).reduce((acc, site) => 
+    acc + Object.keys(site.scripts).length, 0
+  ) : 0;
+
+  const enabledScripts = remoteConfig ? Object.entries(remoteConfig.sites).reduce((acc, [siteId, site]) => {
+    const enabled = Object.values(site.scripts).filter(script => {
+      const settingKey = `${siteId}/${script.id}`;
+      return settings[settingKey]?.enabled ?? script.defaultEnabled;
+    }).length;
     return acc + enabled;
-  }, 0);
+  }, 0) : 0;
 
-  const supportedSites = SCRIPTS_CONFIG.length;
+  const supportedSites = remoteConfig ? Object.keys(remoteConfig.sites).length : 0;
 
   return (
     <div className="h-full overflow-y-auto bg-background">
@@ -181,14 +201,14 @@ export const Home = () => {
               Supported Websites
             </h2>
             <div className="grid sm:grid-cols-2 gap-3">
-              {SCRIPTS_CONFIG.map(site => {
-                const allScripts = [...site.defaultScripts, ...site.pathScripts];
+              {remoteConfig && Object.entries(remoteConfig.sites).map(([siteId, site]) => {
+                const allScripts = Object.values(site.scripts);
                 const removalCount = allScripts.filter(s => s.type === 'removal').length;
                 const enhancementCount = allScripts.filter(s => s.type === 'enhancement').length;
 
                 return (
                   <div
-                    key={site.id}
+                    key={siteId}
                     className={cn(
                       "group p-4 rounded-lg border bg-card",
                       "hover:bg-accent/30 transition-all duration-200",
@@ -196,7 +216,7 @@ export const Home = () => {
                     )}
                   >
                     <div className="flex items-start gap-2.5">
-                      <SiteIcon siteId={site.id} size={32} />
+                      <SiteIcon siteId={siteId} size={32} />
                       <div className="flex-1 min-w-0">
                         <h3 className="text-sm font-semibold text-foreground mb-0.5">
                           {site.name}

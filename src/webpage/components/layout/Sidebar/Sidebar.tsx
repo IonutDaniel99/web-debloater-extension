@@ -1,20 +1,38 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { cn } from "@/webpage/lib/utils";
 import { Link, useLocation } from "react-router-dom";
 import { Search, X, Home as HomeIcon } from "lucide-react";
-import { SCRIPTS_CONFIG } from "@/page-scripts/scripts";
 import { ModeToggle } from "../../ModeToggle";
 import { SiteIcon } from "../../SiteIcon";
 import { PagesInterface } from "../../../configs/pages";
+import type { RemoteScriptsConfig } from '@/core/remote-config';
 
 export function Sidebar({ pages }: { pages: PagesInterface[] }) {
   const location = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
+  const [remoteConfig, setRemoteConfig] = useState<RemoteScriptsConfig | null>(null);
+
+  // Load remote config
+  useEffect(() => {
+    async function loadConfig() {
+      try {
+        const result = await new Promise<RemoteScriptsConfig | null>((resolve) => {
+          chrome.storage.local.get(['remote_scripts_config'], (result: any) => {
+            resolve(result.remote_scripts_config || null);
+          });
+        });
+        setRemoteConfig(result);
+      } catch (error) {
+        console.error('[Sidebar] Failed to load config:', error);
+      }
+    }
+    loadConfig();
+  }, []);
 
   // Filter pages based on search query
   const filteredPages = pages.filter((page) => {
     if (!searchQuery) return true;
-    const site = SCRIPTS_CONFIG.find(s => s.id === page.id);
+    const site = remoteConfig?.sites[page.id];
     const name = site?.name || page.id;
     return name.toLowerCase().includes(searchQuery.toLowerCase());
   });
@@ -68,7 +86,7 @@ export function Sidebar({ pages }: { pages: PagesInterface[] }) {
         <div className="space-y-0.5">
           {filteredPages.map((page) => {
             const isActive = location.pathname === page.path;
-            const site = SCRIPTS_CONFIG.find(s => s.id === page.id);
+            const site = remoteConfig?.sites[page.id];
             const isHomePage = page.id === 'home';
 
             return (
@@ -112,7 +130,7 @@ export function Sidebar({ pages }: { pages: PagesInterface[] }) {
                   </div>
                   {site && (
                     <div className="text-[10px] text-muted-foreground">
-                      {[...site.defaultScripts, ...site.pathScripts].length} scripts
+                      {Object.keys(site.scripts).length} scripts
                     </div>
                   )}
                 </div>

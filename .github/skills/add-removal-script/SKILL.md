@@ -1,443 +1,359 @@
 ---
 name: add-removal-script
-description: 'Add a new content removal script to an existing site (YouTube, GitHub, Instagram). Guides through creating the script file, updating config, and adding selectors. Interactive workflow that asks for all required details and creates all necessary files.'
-argument-hint: 'Brief description of what to remove (e.g., "hide reels button on Instagram")'
+description: 'Add a new content removal script to an existing site by updating scripts-config.json. Data-driven approach - no TypeScript files needed. Scripts update remotely without Chrome Store review.'
+argument-hint: 'Brief description of what to remove (e.g., "hide Shorts button on YouTube")'
 ---
 
-# Add Removal Script to Site
+# Add Removal Script (Data-Driven)
 
-Guided workflow for adding a new content removal script to an existing site in the Web Debloater & Enhancer extension.
+Add content removal scripts by editing `config/scripts-config.json` only. No TypeScript files needed.
 
 ## When to Use
 
-- Adding a new element removal feature to YouTube, GitHub, or Instagram
-- Creating a script that hides/removes unwanted UI elements
-- Adding zone-specific content removal (home page, subscriptions, etc.)
+✅ **Use for:**
+- Removing UI elements from YouTube, GitHub, Instagram, WhatsApp
+- Hiding content with CSS/XPath selectors
+- Scripts that wait for user interaction
+- Scripts that need multiple selectors
 
-**Do NOT use for:**
-- Adding new sites (use manual process)
-- Enhancement scripts that add functionality
-- Modifying existing scripts (edit directly)
+❌ **Do NOT use for:**
+- Complex logic requiring variables/state
+- Custom UI components (use bundled scripts)
+- Adding new sites (requires manual JSON structure)
 
-## What This Skill Does
+## Architecture
 
-This skill will:
-1. ✅ Ask you for all required details interactively
-2. ✅ Create the TypeScript removal script file
-3. ✅ Update the site's config file with script registration
-4. ✅ Add selector to `config/selectors.json`
-5. ✅ Provide browser console command to test selector
-6. ✅ Give clear next steps for building and testing
+**How it works:**
+1. Define script in `scripts-config.json` with inline selectors
+2. Commit & push to GitHub
+3. Users get update automatically (6 hours or manual click)
+4. Generic `removal-engine.ts` executes the configuration
+5. No Chrome Store review needed!
 
 ## Procedure
 
-### Step 1: Gather Information
+### Step 1: Basic Info
 
-Ask the user these questions in order:
-
-#### Q1: Which site?
+**Q1: Site?**
 ```
-Which site is this script for?
+Which site?
 1. YouTube
-2. GitHub  
+2. GitHub
 3. Instagram
-
-Enter number (1-3):
+4. WhatsApp
 ```
 
-Store as: `site` (youtube/github/instagram)
-
-#### Q2: What does it remove?
+**Q2: Feature name?**
 ```
-What does this script remove? (e.g., "Reels button", "Trending sidebar")
+What to remove? (e.g., "Shorts button", "Sponsored posts")
 ```
 
-Store as: `featureName`
-
-#### Q3: Where should it run?
+**Q3: Script ID?**
 ```
-Where should this script run?
-1. On all pages of {site}
-2. On a specific page/path only
-
-Enter number (1-2):
+Script ID (camelCase)?
+Examples: hideShortsButton, removeSponsored, hideReelsShelf
 ```
 
-If 2, ask:
+**Q4: URL Pattern?**
 ```
-What is the URL pattern regex? (e.g., "youtube\.com/watch.*" for video pages)
-Tip: Use \. for dots, .* for wildcards
-```
+Run on:
+1. All pages
+2. Specific pages only
 
-Store as: `urlPattern` (or null if all pages)
-Store as: `pathDescription` (e.g., "watch pages", "home", "subscriptions")
-
-#### Q4: Script location
-```
-Where should this script be saved?
+If 2, provide regex pattern:
 Examples:
-  - youtube/remove/shorts/  (for shorts-related features)
-  - instagram/remove/reels/ (for reels features)
-  - github/remove/sidebar/  (for sidebar features)
-
-Path (relative to src/page-scripts/{site}/): 
+- youtube\\.com/watch.*              (video pages)  
+- instagram\\.com/?($|\\?)           (home with optional ?theme=dark)
+- github\\.com/[^/]+/[^/]+/issues   (issues pages)
 ```
 
-Store as: `scriptDir` (e.g., "remove/reels/")
+### Step 2: Selectors
 
-#### Q5: Exact filename
+**Q5: Find selectors**
 ```
-Exact filename for the script (without .ts extension)?
-Convention: camelCase starting with action verb
-Examples: hideReelsButton, removeTrendingSidebar, hideProfileContainer
+Open browser DevTools (F12) and test:
+document.querySelectorAll('YOUR_SELECTOR')
 
-Filename:
-```
-
-Store as: `scriptFilename` (e.g., "hideReelsButton")
-
-#### Q6: Selector details
-```
-What CSS selector, XPath, or element ID targets the element?
-Example: .reel-button, //div[@class='trending'], shorts-shelf
-
-Selector:
+How many selectors?
+1. Single selector
+2. Multiple selectors (for different variations)
 ```
 
-Store as: `selectorValue`
-
+**For each selector:**
 ```
-What type of selector is this?
-1. css (CSS selector - most common)
-2. xpath (XPath expression)
-3. id (Element ID)
-4. class (Space-separated class names)
-
-Enter number (1-4):
+1. Selector value? (e.g., "ytd-guide-entry-renderer a[title='Shorts']")
+2. Selector type?
+   1. CSS (default)
+   2. XPath
+   3. ID
+   4. Class
 ```
 
-Store as: `selectorType` (css/xpath/id/class)
+### Step 3: Advanced Options
 
-#### Q7: Selector path (with suggestion)
-Based on `scriptDir`, suggest a selector path:
-- If scriptDir is `remove/shorts/` → suggest `{site}.shorts`
-- If scriptDir is `remove/reels/home/` → suggest `{site}.reels.home`
-- If scriptDir is `remove/sidebar/` → suggest `{site}.sidebar`
-
+**Q6: Behavior?**
 ```
-Suggested selector path: {site}.{derived_from_scriptDir}
+Special behavior needed?
 
-This path is used in selectors.json and script code.
-Examples:
-  - youtube.shorts.button
-  - instagram.reels.home
-  - github.sidebar.trending
-
-Use suggestion? (y/n):
-```
-
-If n, ask:
-```
-Enter custom selector path (dot notation):
+1. Observe changes? (watch for new elements)
+   Default: Yes
+   
+2. Retry delay? (wait N ms then try again)
+   Default: None
+   Example: 1000 (for delayed content)
+   
+3. Wait for user input? (click/scroll/keypress triggers script)
+   Default: No
+   Use for: Popups that appear after interaction
+   Delay after input: 250ms (adjustable)
+   
+4. Wait for element? (CSS selector that must exist first)
+   Default: None
+   Example: #main (for WhatsApp)
 ```
 
-Store as: `selectorPath`
+### Step 4: Add to JSON
 
-### Step 2: Validate & Confirm
+Edit `config/scripts-config.json`:
 
-Show summary:
-```
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📋 SUMMARY
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Site:           {site}
-Feature:        {featureName}
-Script ID:      {scriptFilename}
-Runs on:        {urlPattern or "all pages"}
-File location:  src/page-scripts/{site}/{scriptDir}{scriptFilename}.ts
-Selector:       {selectorValue} (type: {selectorType})
-Selector path:  {selectorPath}
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Proceed with creation? (y/n):
-```
-
-### Step 3: Test Selector (Before Creating Files)
-
-Provide test command:
-```
-🧪 TEST YOUR SELECTOR FIRST
-
-Before creating files, verify your selector works:
-
-1. Open {site} in your browser
-2. Navigate to the target page
-3. Open Developer Tools (F12)
-4. Run this in the Console:
-
-   {generateTestCommand(selectorType, selectorValue)}
-
-You should see the elements you want to remove.
-If you see 0 elements or wrong elements, adjust your selector.
-
-Press Enter when ready to continue...
-```
-
-### Step 4: Create Files
-
-Create 3 files:
-
-#### File 1: TypeScript Script
-**Path**: `src/page-scripts/{site}/{scriptDir}{scriptFilename}.ts`
-
-**Content**:
-```typescript
-/**
- * {featureName}
- * Removes {featureName} from {site} {pathDescription or "pages"}
- * 
- * This script only runs if enabled in extension settings.
- * Requires: core/dom-utils.ts to be injected first
- */
-
-/// <reference path="{calculateRelativePath}/core/dom-utils.ts" />
-
-(function() {
-  'use strict';
-
-  const APP_NAME = '{capitalize(site)}';
-  const SCRIPT_ID = '{scriptFilename}';
-
-  console.log(`[${APP_NAME}][${SCRIPT_ID}] Initializing...`);
-  
-  // Wait for shared utilities to be available
-  if (!window.Debloater) {
-    console.error(`[${APP_NAME}][${SCRIPT_ID}] Debloater utilities not loaded!`);
-    return;
+**Basic Removal (Single Selector):**
+```json
+{
+  "sites": {
+    "youtube": {
+      "scripts": {
+        "hideShortsButton": {
+          "id": "hideShortsButton",
+          "name": "Hide Shorts Button",
+          "description": "Removes the Shorts button from YouTube navigation",
+          "type": "removal",
+          "defaultEnabled": false,
+          "removal": {
+            "selectors": [
+              {
+                "selector": "ytd-guide-entry-renderer a[title='Shorts']",
+                "type": "css"
+              }
+            ],
+            "observeChanges": true
+          }
+        }
+      }
+    }
   }
-
-  // Get selectors from storage
-  const SELECTORS = window.Debloater.getSelectors('{selectorPath}');
-
-  // Initial removal
-  const removed = window.Debloater.deleteElements(SELECTORS);
-  if (removed > 0) {
-    console.log(`[${APP_NAME}][${SCRIPT_ID}] Removed ${removed} elements`);
-  }
-
-  // Observe for dynamic changes (for SPAs)
-  if (SELECTORS && (Array.isArray(SELECTORS) ? SELECTORS.length > 0 : true)) {
-    window.Debloater.observeAndRemove(SELECTORS);
-  }
-
-  console.log(`[${APP_NAME}][${SCRIPT_ID}] Active`);
-})();
+}
 ```
 
-#### File 2: Update Site Config
-**Path**: `src/page-scripts/{site}/{site}_config.ts`
+**Multiple Selectors:**
+```json
+{
+  "hideShortsButton": {
+    "id": "hideShortsButton",
+    "name": "Hide Shorts Button",
+    "description": "Removes Shorts from sidebar and mini guide",
+    "type": "removal",
+    "defaultEnabled": false,
+    "removal": {
+      "selectors": [
+        {
+          "selector": "ytd-guide-entry-renderer a[title='Shorts']",
+          "type": "css"
+        },
+        {
+          "selector": "ytd-mini-guide-entry-renderer a[title='Shorts']",
+          "type": "css"
+        }
+      ],
+      "observeChanges": true
+    }
+  }
+}
+```
 
-Add to appropriate array:
-- If `urlPattern` is null → add to `defaultScripts`
-- If `urlPattern` exists → add to `pathScripts`
+**Page-Specific (URL Pattern):**
+```json
+{
+  "hideShortsHome": {
+    "id": "hideShortsHome",
+    "name": "Hide Shorts on Home",
+    "description": "Removes Shorts shelf from YouTube home page",
+    "type": "removal",
+    "defaultEnabled": false,
+    "urlPattern": "youtube\\.com/?$",
+    "removal": {
+      "selectors": [
+        {
+          "selector": "ytd-rich-shelf-renderer[is-shorts]",
+          "type": "css"
+        }
+      ],
+      "observeChanges": true,
+      "retryDelay": 1000
+    }
+  }
+}
+```
 
-**New entry**:
+**Wait for User Input:**
+```json
+{
+  "removePopup": {
+    "id": "removePopup",
+    "name": "Remove Popup After Click",
+    "description": "Removes WhatsApp promotional popup",
+    "type": "removal",
+    "defaultEnabled": false,
+    "removal": {
+      "selectors": [
+        {
+          "selector": "#side > div:nth-child(6)",
+          "type": "css"
+        }
+      ],
+      "observeChanges": true,
+      "waitForFirstUserInput": true,
+      "checkAfterFirstInput": 250
+    }
+  }
+}
+```
+
+**XPath Selector:**
+```json
+{
+  "removeDialog": {
+    "id": "removeDialog",
+    "name": "Remove Dialog",
+    "description": "Removes dialog using XPath",
+    "type": "removal",
+    "defaultEnabled": false,
+    "removal": {
+      "selectors": [
+        {
+          "selector": "//div[contains(text(), 'Get WhatsApp')]//ancestor::div[@role='dialog']",
+          "type": "xpath"
+        }
+      ],
+      "observeChanges": true
+    }
+  }
+}
+```
+
+### Step 5: Test & Deploy
+
+**Local Test:**
+```bash
+npm run build
+# Reload extension in chrome://extensions
+# Enable script in extension settings
+# Navigate to target page
+# Check console: [site][scriptId] messages
+```
+
+**Deploy:**
+```bash
+git add config/scripts-config.json
+git commit -m "Add [feature] removal for [site]"
+git push origin main
+```
+
+**Users get updates:**
+- Automatically within 6 hours
+- Or click "Check for Updates" in extension
+
+## Configuration Reference
+
 ```typescript
 {
-  id: "{scriptFilename}",
-  name: "{featureName}",
-  description: "Remove {featureName} from {site} {pathDescription or 'pages'}",
-  scriptPath: "{site}/{scriptDir}{scriptFilename}.js",
-  {urlPattern ? `urlPattern: "${urlPattern}",` : ''}
-  type: "removal",
-  defaultEnabled: false,
-}
-```
-
-#### File 3: Update Selectors
-**Path**: `config/selectors.json`
-
-Add selector following the path structure:
-```json
-// Navigate to the right location in JSON based on selectorPath
-// e.g., "youtube.shorts.button" → youtube → shorts → button
-
-{
-  "selector": "{selectorValue}",
-  "type": "{selectorType}"
-}
-```
-
-### Step 5: Report Success & Next Steps
-
-```
-✅ FILES CREATED SUCCESSFULLY!
-
-📁 Created:
-  • src/page-scripts/{site}/{scriptDir}{scriptFilename}.ts
-  
-📝 Updated:
-  • src/page-scripts/{site}/{site}_config.ts
-  • config/selectors.json
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🚀 NEXT STEPS
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-1. Review the generated files for correctness
-
-2. Build the extension:
-   npm run build
-
-3. Reload extension in Chrome:
-   chrome://extensions/ → Click reload icon
-
-4. Test on {site}:
-   • Open {site} settings page
-   • Find "{featureName}" under Remove Content
-   • Enable the toggle
-   • Click "Apply Changes"
-   • Verify the element is removed
-
-5. Check console logs:
-   • F12 → Console tab
-   • Look for: [{capitalize(site)}][{scriptFilename}] messages
-
-🐛 TROUBLESHOOTING:
-   • Element not removed? Check selector in DevTools
-   • Script not appearing? Verify config syntax
-   • Build errors? Check TypeScript syntax
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-```
-
-## Helper Functions
-
-### generateTestCommand
-```javascript
-function generateTestCommand(type, selector) {
-  switch(type) {
-    case 'css':
-      return `document.querySelectorAll('${selector}')`;
-    case 'xpath':
-      return `document.evaluate('${selector}', document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null).snapshotLength`;
-    case 'id':
-      return `document.getElementById('${selector}')`;
-    case 'class':
-      return `document.querySelectorAll('.${selector.split(' ').join('.')}')`;
+  "id": string,              // Unique ID (camelCase)
+  "name": string,            // Display name
+  "description": string,     // What it does
+  "type": "removal",         // Always "removal"
+  "defaultEnabled": boolean, // false recommended
+  "urlPattern"?: string,     // Optional: regex for specific pages
+  "removal": {
+    "selectors": Array<{
+      "selector": string,    // CSS, XPath, ID, or class
+      "type"?: "css"|"xpath"|"id"|"class"  // Default: "css"
+    }>,
+    "observeChanges"?: boolean,        // Watch for new elements (default: true)
+    "retryDelay"?: number,             // Wait N ms then retry
+    "waitForFirstUserInput"?: boolean, // Wait for click/scroll/keypress
+    "checkAfterFirstInput"?: number,   // Delay after input (default: 250ms)
+    "waitFor"?: string                 // CSS selector that must exist first
   }
 }
 ```
 
-### calculateRelativePath
-Based on `scriptDir`, calculate relative path to core:
-- `remove/` → `../../../core/dom-utils.ts`
-- `remove/shorts/` → `../../../../core/dom-utils.ts`
-- `remove/reels/home/` → `../../../../../core/dom-utils.ts`
+## Selector Testing
 
-Count slashes in scriptDir + 2 for {site} and page-scripts.
-
-### derivePathFromDir
+**CSS:**
 ```javascript
-function derivePathFromDir(scriptDir) {
-  // remove/shorts/ → shorts
-  // remove/reels/home/ → reels.home
-  // remove/sidebar/trending/ → sidebar.trending
-  
-  return scriptDir
-    .replace(/^remove\//, '')
-    .replace(/\/$/, '')
-    .replace(/\//g, '.');
-}
+document.querySelectorAll('ytd-guide-entry-renderer a[title="Shorts"]')
 ```
 
-## Examples
-
-### Example 1: YouTube Reels Button
-```
-Site: YouTube
-Feature: Reels Button
-Runs on: All YouTube pages
-Script dir: remove/reels/
-Filename: hideReelsButton
-Selector: .reel-button
-Type: css
-Path: youtube.reels.button
+**XPath:**
+```javascript
+$x("//div[contains(text(), 'Shorts')]")
 ```
 
-### Example 2: Instagram Stories Home
-```
-Site: Instagram  
-Feature: Stories Section (Home)
-Runs on: instagram\.com/?(?:\?.*)?$
-Script dir: remove/stories/home/
-Filename: hideStoriesHome
-Selector: x1s928wv xhkezso x1gmr53x
-Type: class
-Path: instagram.stories.home
+**ID:**
+```javascript
+document.getElementById('shorts-button')
 ```
 
-### Example 3: GitHub Trending Sidebar
-```
-Site: GitHub
-Feature: Trending Sidebar
-Runs on: All GitHub pages
-Script dir: remove/sidebar/
-Filename: hideTrendingSidebar
-Selector: //aside[@aria-label='Trending']
-Type: xpath
-Path: github.sidebar.trending
+**Class:**
+```javascript
+document.querySelectorAll('.x1dr59a3.x13vifvy')
 ```
 
-## Quality Checklist
+## Common Patterns
 
-Before finalizing:
-- [ ] Script file has proper JSDoc comment
-- [ ] Script ID matches filename
-- [ ] Selector path is logical and matches convention
-- [ ] URL pattern is tested if path-specific
-- [ ] Config entry has all required fields
-- [ ] Selectors.json has correct nesting
-- [ ] Relative path to dom-utils is correct
-- [ ] Test command provided to user
-- [ ] Next steps are clear
-
-## Edge Cases
-
-**Multiple selectors**: 
-If user wants multiple selectors, create array in selectors.json:
-```json
-[
-  { "selector": "selector1", "type": "css" },
-  { "selector": "selector2", "type": "xpath" }
-]
+**Home page only:**
+```
+"urlPattern": "instagram\\.com/?($|\\?)"
 ```
 
-**Nested paths**:
-For deep paths like `youtube.watch.sidebar.recommended`, ensure proper nesting in selectors.json.
+**Video pages:**
+```
+"urlPattern": "youtube\\.com/watch.*"
+```
 
-**Special characters**:
-Remind user to escape special chars in regex patterns: `\.` for dots, `\/` for slashes.
+**User profiles:**
+```
+"urlPattern": "github\\.com/[^/]+/?$"
+```
 
-## Anti-patterns to Avoid
+**Feed pages:**
+```
+"urlPattern": "youtube\\.com/feed/(subscriptions|trending)"
+```
 
-❌ Creating enhancement scripts (out of scope)
-❌ Modifying multiple sites at once (one at a time)
-❌ Skipping selector testing (always test first)
-❌ Using generic selector paths (be specific)
-❌ Creating files without asking for confirmation
+## Tips
 
-## Success Criteria
+1. **Test selectors first** - Always verify in DevTools before adding
+2. **Multiple selectors** - Use array for variations (mobile/desktop)
+3. **Observe changes** - Keep true for SPAs (YouTube, Instagram)
+4. **URL patterns** - Escape dots `\\.` and use `.*` for wildcards
+5. **User input** - Use for popups that appear after clicks
+6. **Retry delay** - Use for elements that load slowly
 
-User should have:
-✅ Working removal script that compiles
-✅ Script registered in site config
-✅ Selector added to selectors.json
-✅ Clear understanding of how to test
-✅ Knowledge of what to do if it doesn't work
+## Troubleshooting
 
----
+**Selector not working?**
+- Test in browser console first
+- Check if element loads dynamically (use retryDelay)
+- Try XPath if CSS fails
+- Inspect element structure in DevTools
 
-**Remember**: Always ask questions interactively, never assume defaults. Make the user feel guided through each step.
+**URL pattern not matching?**
+- Test: `new RegExp("pattern").test(window.location.href)`
+- Escape dots: `\\.`
+- Use `($|\\?)` for optional query params
+
+**Script not activating?**
+- Check console for initialization message
+- Verify script is enabled in settings
+- Check URL pattern matches current page
+- Ensure selectors are defined correctly

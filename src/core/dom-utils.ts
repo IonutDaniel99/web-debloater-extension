@@ -19,17 +19,11 @@ interface DebloaterUtils {
   deleteElements: (selectors: SelectorInput) => number;
   observeAndRemove: (selectors: SelectorInput, callback?: ((count: number) => void) | null) => MutationObserver;
   waitForElement: (selector: string, timeout?: number) => Promise<Element>;
-  getSelectors: (path: string) => SelectorInput;
 }
 
 declare global {
   interface Window {
     Debloater?: DebloaterUtils;
-    __SELECTORS__?: {
-      version: string;
-      lastUpdated: string;
-      selectors: any;
-    };
   }
 }
 
@@ -209,31 +203,6 @@ export {};
           reject(new Error(`Element not found: ${selector}`));
         }, timeout);
       });
-    },
-
-    /**
-     * Get selectors by path from global selectors object
-     * Path format: 'youtube.shorts.button'
-     */
-    getSelectors(path) {
-      if (!window.__SELECTORS__) {
-        console.warn('[Debloater] No selectors loaded');
-        return [];
-      }
-
-      const parts = path.split('.');
-      let current: any = window.__SELECTORS__.selectors;
-
-      for (const part of parts) {
-        if (current && typeof current === 'object' && part in current) {
-          current = current[part];
-        } else {
-          console.warn(`[Debloater] Selector path not found: ${path}`);
-          return [];
-        }
-      }
-
-      return current || [];
     }
   };
 

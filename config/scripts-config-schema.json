@@ -1,0 +1,210 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Web Debloater Scripts Configuration",
+  "description": "Remote configuration for data-driven scripts. This JSON is downloaded from GitHub and parsed by the extension. All executable code remains bundled in the extension.",
+  "type": "object",
+  "required": ["version", "lastUpdated", "sites"],
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "Configuration version (YYYY.M.D.HHMM format)",
+      "pattern": "^\\d{4}\\.\\d{1,2}\\.\\d{1,2}\\.\\d{4}$",
+      "examples": ["2026.3.27.1200"]
+    },
+    "lastUpdated": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of last update"
+    },
+    "sites": {
+      "type": "object",
+      "description": "Script configurations organized by site",
+      "additionalProperties": {
+        "$ref": "#/definitions/SiteConfig"
+      }
+    }
+  },
+  "definitions": {
+    "SiteConfig": {
+      "type": "object",
+      "required": ["name", "urlPatternBase", "scripts"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Display name of the site"
+        },
+        "urlPatternBase": {
+          "type": "string",
+          "description": "Regex pattern for matching URLs"
+        },
+        "icon": {
+          "type": "string",
+          "description": "Icon identifier or path"
+        },
+        "scripts": {
+          "type": "object",
+          "description": "Scripts for this site",
+          "additionalProperties": {
+            "$ref": "#/definitions/ScriptConfig"
+          }
+        }
+      }
+    },
+    "ScriptConfig": {
+      "type": "object",
+      "required": ["id", "name", "description", "type", "defaultEnabled"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique script identifier"
+        },
+        "name": {
+          "type": "string",
+          "description": "Display name"
+        },
+        "description": {
+          "type": "string",
+          "description": "What the script does"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["removal", "enhancement"],
+          "description": "Script type"
+        },
+        "defaultEnabled": {
+          "type": "boolean",
+          "description": "Default enabled state"
+        },
+        "urlPattern": {
+          "type": "string",
+          "description": "Optional specific URL pattern for this script"
+        },
+        "removal": {
+          "$ref": "#/definitions/RemovalConfig",
+          "description": "Configuration for removal scripts"
+        },
+        "enhancement": {
+          "$ref": "#/definitions/EnhancementConfig",
+          "description": "Configuration for enhancement scripts"
+        }
+      }
+    },
+    "RemovalConfig": {
+      "type": "object",
+      "required": ["selectorPath"],
+      "properties": {
+        "selectorPath": {
+          "type": "string",
+          "description": "Path to selectors in selectors object (e.g., 'youtube.shorts.button')"
+        },
+        "observeChanges": {
+          "type": "boolean",
+          "description": "Use MutationObserver for dynamic content",
+          "default": true
+        },
+        "waitFor": {
+          "type": "string",
+          "description": "Wait for this selector before running"
+        },
+        "retryDelay": {
+          "type": "number",
+          "description": "Retry after N milliseconds"
+        }
+      }
+    },
+    "EnhancementConfig": {
+      "type": "object",
+      "required": ["enhancementType"],
+      "properties": {
+        "enhancementType": {
+          "type": "string",
+          "enum": ["floating-button", "keyboard-shortcut", "inline-button"]
+        },
+        "floatingButton": {
+          "$ref": "#/definitions/FloatingButtonConfig"
+        },
+        "keyboardShortcut": {
+          "$ref": "#/definitions/KeyboardShortcutConfig"
+        }
+      }
+    },
+    "FloatingButtonConfig": {
+      "type": "object",
+      "required": ["text", "onClick"],
+      "properties": {
+        "text": {
+          "type": "string",
+          "description": "Button text or emoji"
+        },
+        "icon": {
+          "type": "string",
+          "description": "HTML or emoji icon"
+        },
+        "style": {
+          "type": "object",
+          "properties": {
+            "position": {
+              "type": "string",
+              "enum": ["bottom-right", "bottom-left", "top-right", "top-left"],
+              "default": "bottom-right"
+            },
+            "backgroundColor": {
+              "type": "string",
+              "default": "#0969da"
+            },
+            "color": {
+              "type": "string",
+              "default": "white"
+            },
+            "size": {
+              "type": "number",
+              "description": "Width & height in pixels",
+              "default": 50
+            }
+          }
+        },
+        "showOnScroll": {
+          "type": "number",
+          "description": "Show after scrolling N pixels (0 = always show)",
+          "default": 300
+        },
+        "onClick": {
+          "type": "string",
+          "description": "Name of predefined action"
+        },
+        "onClickParams": {
+          "type": "array",
+          "description": "Parameters for the action"
+        }
+      }
+    },
+    "KeyboardShortcutConfig": {
+      "type": "object",
+      "required": ["keys", "action"],
+      "properties": {
+        "keys": {
+          "type": "string",
+          "description": "Key combination (e.g., 'Ctrl+Shift+T')",
+          "examples": ["Space", "Ctrl+K", "Alt+Shift+D"]
+        },
+        "description": {
+          "type": "string",
+          "description": "Shortcut description"
+        },
+        "action": {
+          "type": "string",
+          "description": "Name of predefined action"
+        },
+        "actionParams": {
+          "type": "array",
+          "description": "Parameters for the action"
+        },
+        "preventDefault": {
+          "type": "boolean",
+          "description": "Prevent default browser behavior",
+          "default": false
+        }
+      }
+    }
+  }
+}

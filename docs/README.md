@@ -1,103 +1,150 @@
 # Web Debloater & Enhancer Extension - Documentation
 
-Welcome to the Web Debloater & Enhancer Extension documentation! This folder contains guides for extending and customizing the extension.
+Welcome to the Web Debloater & Enhancer Extension documentation!
 
-## 📚 Available Guides
+## 🏗️ Architecture (Data-Driven)
 
-### For Developers
+This extension uses a **data-driven architecture**:
+- ✅ Scripts defined in `config/scripts-config.json`
+- ✅ Generic engines execute configs
+- ✅ Remote updates via GitHub (no Chrome Store review)
+- ✅ Auto-updates every 6 hours
+- ✅ No TypeScript files for simple scripts
 
-- **[Adding Content Removal Scripts](./add-remove-content-for-page.md)**  
-  Learn how to remove unwanted elements from websites (ads, recommendations, clutter)
-  
-- **[Adding Enhancement Scripts](./add-enhancement-for-page.md)**  
-  Learn how to add new features and functionality to websites
+## 📚 Documentation
+
+- **[Data-Driven Architecture](./data-driven-architecture.md)** - How the system works
+- **Central Config**: `config.ts` - All settings in one place
+- **Remote Config**: GitHub repo auto-updates to users
 
 ## 🚀 Quick Start
 
-1. **Choose what you want to do:**
-   - Remove something annoying? → [Content Removal Guide](./add-remove-content-for-page.md)
-   - Add a useful feature? → [Enhancement Guide](./add-enhancement-for-page.md)
+### Add a Removal Script
 
-2. **Follow the step-by-step guide:**
-   - Each guide includes complete code examples
-   - Copy, paste, and customize for your needs
-   - Build and test using `npm run build`
+1. Open `config/scripts-config.json`
+2. Add to the appropriate site:
 
-3. **Test your changes:**
-   - Load the extension from `dist/` folder
-   - Verify your script works
-   - Toggle it on/off in settings
+```json
+{
+  "hideElement": {
+    "id": "hideElement",
+    "name": "Hide Element Name",
+    "description": "Removes element from page",
+    "type": "removal",
+    "defaultEnabled": true,
+    "removal": {
+      "selectorPath": "div.unwanted-element",
+      "observeChanges": true
+    }
+  }
+}
+```
+
+3. Push to GitHub - users get update automatically!
+
+### Add an Enhancement Script
+
+1. Open `config/scripts-config.json`
+2. Add to the appropriate site:
+
+```json
+{
+  "scrollButton": {
+    "id": "scrollButton",
+    "name": "Scroll to Top",
+    "description": "Adds floating scroll button",
+    "type": "enhancement",
+    "defaultEnabled": true,
+    "enhancement": {
+      "enhancementType": "floating-button",
+      "floatingButton": {
+        "text": "↑ Top",
+        "onClick": "scrollToTop"
+      }
+    }
+  }
+}
+```
+
+3. Push to GitHub!
 
 ## 📁 Project Structure
 
 ```
 web-debloater-extension/
+├── config.ts                    # Central configuration
 ├── config/
-│   ├── selectors.json      # CSS selectors for removal scripts
-│   └── env.ts              # Environment config
+│   └── scripts-config.json      # All script definitions
 ├── src/
-│   ├── page-scripts/       # Your scripts go here
-│   │   ├── youtube/
-│   │   │   ├── remove/    # Removal scripts
-│   │   │   └── add/       # Enhancement scripts
-│   │   ├── github/
-│   │   │   ├── remove/
-│   │   │   └── add/
-│   │   ├── instagram/
-│   │   │   └── remove/
-│   │   └── scripts.ts     # Central registration
-│   ├── core/              # Shared utilities
-│   │   └── dom-utils.ts   # Helper functions
-│   └── webpage/           # Settings UI
-└── docs/                  # You are here!
+│   ├── engines/                 # Generic engines
+│   │   ├── removal-engine.ts   # Executes removals
+│   │   ├── enhancement-engine.ts # Executes enhancements
+│   │   └── predefined-actions.ts # 20+ actions
+│   ├── core/
+│   │   ├── remote-config.ts    # Fetch/cache configs
+│   │   └── script-injector.ts  # Hybrid injection
+│   ├── page-scripts/           # Bundled scripts (complex only)
+│   │   └── whatsapp/add/privacyBlurControls.ts
+│   └── webpage/                # Settings UI
+│       └── pages/DynamicSitePage.tsx # Dynamic site pages
+└── docs/                       # You are here!
 ```
 
 ## 🛠️ Development Workflow
 
 ```bash
-# Install dependencies
+# Install
 npm install
 
-# Build extension
+# Build
 npm run build
 
-# Watch mode (auto-rebuild on changes)
-npm run dev
+# Load in Chrome
+# chrome://extensions/ → Load unpacked → dist/
 
-# Load extension in browser
-# Chrome: chrome://extensions/ → Load unpacked → select dist/
-# Firefox: about:debugging → Load Temporary Add-on → select dist/manifest.json
+# Deploy changes
+git add config/scripts-config.json
+git push
+# Users get update within 6 hours!
 ```
 
-## 💡 Tips
+## 💡 Available Predefined Actions
 
-- **Start simple** - Copy an existing script and modify it
-- **Use DevTools** - Inspect elements to find selectors (F12)
-- **Check console** - Look for your `console.log()` messages
-- **Test thoroughly** - Toggle scripts on/off, test on different pages
-- **Follow patterns** - See existing scripts in `src/page-scripts/`
+See `src/engines/predefined-actions.ts`:
+- `scrollToTop` / `scrollToBottom`
+- `copyToClipboard`
+- `openInNewTab`
+- `toggleDarkMode`
+- `printPage`
+- And 15+ more...
 
-## 🤝 Contributing
+## 🎯 When to Use What
 
-When adding new scripts:
-1. Follow the guides in this folder
-2. Use meaningful names and descriptions
-3. Add comments explaining your code
-4. Test on multiple pages
-5. Consider edge cases (dynamic content, dark mode, etc.)
+**Data-Driven (JSON):**
+- Simple element removal
+- Floating buttons
+- Keyboard shortcuts
+- Predefined actions
+
+**Bundled TypeScript:**
+- Complex state management
+- Custom UI components
+- Advanced logic
+- See: `whatsapp/add/privacyBlurControls.ts`
+
+## 🔧 Configuration
+
+Edit `config.ts` to change:
+- GitHub repository URL
+- Auto-update interval (default 6h)
+- Storage keys
+- Feature flags
 
 ## 📖 Further Reading
 
+- [Data-Driven Architecture](./data-driven-architecture.md)
 - [TypeScript Documentation](https://www.typescriptlang.org/docs/)
 - [Chrome Extension APIs](https://developer.chrome.com/docs/extensions/)
-- [CSS Selectors Reference](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Selectors)
-- [Mutation Observer API](https://developer.mozilla.org/en-US/docs/Web/API/MutationObserver)
-
-## ❓ Need Help?
-
-- Check existing scripts in `src/page-scripts/` for examples
-- Look at `core/dom-utils.ts` for available helper functions
-- Read the inline comments in the codebase
 - Open an issue if you find problems
 
 ---

@@ -113,8 +113,8 @@ export default defineConfig({
         assetFileNames: 'assets/[name].[ext]',
       },
     },
-    // Generate sourcemaps for debugging
-    sourcemap: true,
+    // Generate sourcemaps only in development
+    sourcemap: process.env.NODE_ENV !== 'production',
   },
   resolve: {
     alias: {

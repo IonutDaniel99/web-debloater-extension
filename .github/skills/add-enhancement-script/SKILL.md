@@ -1,536 +1,388 @@
 ---
 name: add-enhancement-script
-description: 'Add a new enhancement/feature script to an existing site (YouTube, GitHub, Instagram). Guides through creating scripts that add functionality like buttons, shortcuts, or UI improvements. Interactive workflow that creates all necessary files.'
-argument-hint: 'Brief description of enhancement to add (e.g., "add go to top button on GitHub")'
+description: 'Add enhancement scripts (floating buttons, keyboard shortcuts) by editing scripts-config.json. Data-driven - uses predefined actions. No code needed.'
+argument-hint: 'What enhancement to add (e.g., "scroll to top button on GitHub")'
 ---
 
-# Add Enhancement Script to Site
+# Add Enhancement Script (Data-Driven)
 
-Guided workflow for adding a new enhancement/feature script to an existing site in the Web Debloater & Enhancer extension.
+Add floating buttons or keyboard shortcuts by editing `config/scripts-config.json`. Uses predefined actions - no JavaScript needed.
 
 ## When to Use
 
-- Adding new functionality/features to YouTube, GitHub, or Instagram
-- Creating scripts that add UI elements (buttons, shortcuts, overlays)
-- Enhancing existing pages with useful tools
+✅ **Use for:**
+- Floating buttons (scroll to top, download, etc.)
+- Keyboard shortcuts (ctrl+T for scroll, etc.)
+- Actions using predefined functions
+- Simple UI enhancements
 
-**Do NOT use for:**
-- Removing/hiding elements (use add-removal-script instead)
-- Adding new sites (use add-new-site instead)
-- Modifying existing scripts (edit directly)
+❌ **Do NOT use for:**
+- Complex custom UI components
+- Features requiring state/variables
+- Custom JavaScript logic
 
-## What This Skill Does
+## Available Predefined Actions
 
-This skill will:
-1. ✅ Ask you for all required details interactively
-2. ✅ Create the TypeScript enhancement script file
-3. ✅ Update the site's config file with script registration
-4. ✅ Provide implementation guidance for common patterns
-5. ✅ Give clear next steps for building and testing
+All CSP-compliant (no eval):
+
+**Navigation:**
+- `scrollToTop` - Smooth scroll to top
+- `scrollToBottom` - Scroll to bottom
+- `scrollToElement` - Scroll to selector
+- `goBack` - Browser back
+- `goForward` - Browser forward
+- `reload` - Reload page
+
+**Clipboard:**
+- `copyToClipboard` - Copy text
+- `copyCurrentURL` - Copy page URL
+- `copyPageTitle` - Copy page title
+
+**Media:**
+- `playPause` - Toggle video play/pause
+- `rewindVideo` - Rewind 10s (customizable)
+- `forwardVideo` - Forward 10s (customizable)
+- `toggleFullscreen` - Toggle fullscreen
+- `toggleMute` - Toggle mute
+
+**UI:**
+- `toggleElement` - Show/hide element
+- `focusElement` - Focus element
+- `clickElement` - Click element
+
+**Utilities:**
+- `printPage` - Print page
+- `openInNewTab` - Open URL in new tab
+- `downloadCurrentPage` - Download as HTML
 
 ## Procedure
 
-### Step 1: Gather Information
+### Step 1: Basic Info
 
-Ask the user these questions in order:
-
-#### Q1: Which site?
+**Q1: Site?**
 ```
-Which site is this enhancement for?
+Which site?
 1. YouTube
-2. GitHub  
-3. Instagram
-
-Enter number (1-3):
+2. GitHub
+3. Instagram  
+4. WhatsApp
 ```
 
-Store as: `site` (youtube/github/instagram)
-
-#### Q2: What does it add?
+**Q2: Enhancement type?**
 ```
-What does this enhancement do? (e.g., "Go to Top button", "Keyboard shortcuts")
-```
-
-Store as: `featureName`
-
-#### Q3: Enhancement type
-```
-What type of enhancement is this?
-1. Button/UI element (adds visible element to page)
-2. Keyboard shortcut (adds hotkey functionality)
-3. Auto-feature (runs automatically, no UI)
-4. Other/Custom
-
-Enter number (1-4):
+What type of enhancement?
+1. Floating button
+2. Keyboard shortcut
 ```
 
-Store as: `enhancementType` (button/shortcut/auto/custom)
-
-#### Q4: Where should it run?
+**Q3: Script details**
 ```
-Where should this enhancement run?
-1. On all pages of {site}
-2. On a specific page/path only
-
-Enter number (1-2):
+Script ID (camelCase)? Examples: goToTopButton, scrollShortcut
+Name? (e.g., "Go to Top Button")
+Description? (e.g., "Adds floating button to scroll to top")
 ```
 
-If 2, ask:
+### Step 2A: Floating Button Config
+
+If type = Floating Button:
+
 ```
-What is the URL pattern regex? (e.g., "github\.com/.*/pull/.*" for PR pages)
-Tip: Use \. for dots, .* for wildcards
-```
+1. Button text/emoji? (e.g., "↑", "⬆ Top", "↓")
 
-Store as: `urlPattern` (or null if all pages)
-Store as: `pathDescription` (e.g., "PR pages", "home", "watch pages")
+2. Position?
+   1. Bottom right
+   2. Bottom left
+   3. Top right
+   4. Top left
 
-#### Q5: Script location
-```
-Where should this script be saved?
-Examples:
-  - youtube/add/navigation/  (for navigation features)
-  - github/add/shortcuts/    (for keyboard shortcuts)
-  - instagram/add/tools/     (for utility tools)
+3. Background color? (hex, e.g., "#0969da")
 
-Path (relative to src/page-scripts/{site}/): 
-```
+4. Text color? (hex, e.g., "white")
 
-Store as: `scriptDir` (e.g., "add/navigation/")
+5. Size? (pixels, e.g., 50)
 
-#### Q6: Exact filename
-```
-Exact filename for the script (without .ts extension)?
-Convention: camelCase starting with action verb
-Examples: goToTopButton, addKeyboardShortcuts, autoHideElements
+6. Show after scroll distance? (pixels, 0 for always visible)
+   Examples: 0 (always), 300 (after 300px scroll)
 
-Filename:
+7. Click action? (from predefined actions above)
+
+8. Action parameters? (optional, e.g., seconds for rewindVideo)
 ```
 
-Store as: `scriptFilename` (e.g., "goToTopButton")
+### Step 2B: Keyboard Shortcut Config
 
-#### Q7: Implementation needs
-```
-Does your enhancement need to wait for specific elements to appear?
-Examples: 
-  - Wait for main content area before adding button
-  - Wait for video player before adding controls
-  
-1. Yes, I'll specify a selector to wait for
-2. No, run immediately
+If type = Keyboard Shortcut:
 
-Enter number (1-2):
 ```
+1. Key combination? 
+   Examples: "ctrl+t", "ctrl+shift+s", "alt+space"
+   
+2. Action? (from predefined actions above)
 
-If 1, ask:
-```
-CSS selector to wait for (e.g., "main", "#content", ".video-player"):
+3. Action parameters? (optional)
+
+4. Prevent default browser behavior? (y/n)
+   Example: Yes for ctrl+t to prevent opening new tab
 ```
 
-Store as: `waitForSelector` (or null)
+### Step 3: Add to JSON
 
-### Step 2: Validate & Confirm
+Edit `config/scripts-config.json`:
 
-Show summary:
-```
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📋 SUMMARY
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Site:           {site}
-Enhancement:    {featureName}
-Type:           {enhancementType}
-Script ID:      {scriptFilename}
-Runs on:        {urlPattern or "all pages"}
-File location:  src/page-scripts/{site}/{scriptDir}{scriptFilename}.ts
-Wait for:       {waitForSelector or "nothing (runs immediately)"}
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Proceed with creation? (y/n):
-```
-
-### Step 3: Provide Implementation Guidance
-
-Based on `enhancementType`, show pattern:
-
-**For Button/UI Element:**
-```
-💡 IMPLEMENTATION TIPS - Button/UI Element
-
-Your script will create and add an element to the page.
-Common pattern:
-
-1. Create the element
-2. Style it (inline or classes)
-3. Add event listener
-4. Append to target location
-
-Example structure included in generated file.
-```
-
-**For Keyboard Shortcut:**
-```
-💡 IMPLEMENTATION TIPS - Keyboard Shortcut
-
-Your script will listen for key combinations.
-Common pattern:
-
-1. Add keydown event listener
-2. Check key combination (e.g., Ctrl+K)
-3. Execute action
-
-Example structure included in generated file.
-```
-
-**For Auto-feature:**
-```
-💡 IMPLEMENTATION TIPS - Auto Feature
-
-Your script runs automatically without user interaction.
-Common pattern:
-
-1. Observe DOM changes
-2. Apply modifications when conditions met
-3. Use MutationObserver for dynamic content
-
-Example structure included in generated file.
-```
-
-### Step 4: Create Files
-
-Create 2 files:
-
-#### File 1: TypeScript Script
-**Path**: `src/page-scripts/{site}/{scriptDir}{scriptFilename}.ts`
-
-**Content** (varies by type):
-
-**For Button/UI Element:**
-```typescript
-/**
- * {featureName}
- * Adds {featureName} to {site} {pathDescription or "pages"}
- * 
- * This script only runs if enabled in extension settings.
- * Requires: core/dom-utils.ts to be injected first
- */
-
-/// <reference path="{calculateRelativePath}/core/dom-utils.ts" />
-
-(function() {
-  'use strict';
-
-  const APP_NAME = '{capitalize(site)}';
-  const SCRIPT_ID = '{scriptFilename}';
-
-  console.log(`[${APP_NAME}][${SCRIPT_ID}] Initializing...`);
-  
-  // Wait for shared utilities to be available
-  if (!window.Debloater) {
-    console.error(`[${APP_NAME}][${SCRIPT_ID}] Debloater utilities not loaded!`);
-    return;
-  }
-
-  {waitForSelector ? `
-  // Wait for target element
-  window.Debloater.waitForElement('${waitForSelector}')
-    .then(() => {
-      addEnhancement();
-    })
-    .catch((error) => {
-      console.error(\`[\${APP_NAME}][\${SCRIPT_ID}] Target element not found:\`, error);
-    });
-  ` : `
-  // Run immediately
-  addEnhancement();
-  `}
-
-  function addEnhancement() {
-    // Create the button/element
-    const button = document.createElement('button');
-    button.id = '{scriptFilename}-btn';
-    button.textContent = '{featureName}';
-    button.style.cssText = \`
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      z-index: 9999;
-      padding: 12px 16px;
-      background: #3b82f6;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: 500;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      transition: background 0.2s;
-    \`;
-    
-    button.addEventListener('mouseenter', () => {
-      button.style.background = '#2563eb';
-    });
-    
-    button.addEventListener('mouseleave', () => {
-      button.style.background = '#3b82f6';
-    });
-    
-    // Add click handler
-    button.addEventListener('click', () => {
-      // TODO: Implement your logic here
-      // Example: window.scrollTo({ top: 0, behavior: 'smooth' });
-      console.log(\`[\${APP_NAME}][\${SCRIPT_ID}] Button clicked\`);
-    });
-    
-    // Add to page
-    document.body.appendChild(button);
-    
-    console.log(\`[\${APP_NAME}][\${SCRIPT_ID}] Enhancement added\`);
-  }
-
-  console.log(\`[\${APP_NAME}][\${SCRIPT_ID}] Active\`);
-})();
-```
-
-**For Keyboard Shortcut:**
-```typescript
-/**
- * {featureName}
- * Adds {featureName} to {site} {pathDescription or "pages"}
- * 
- * This script only runs if enabled in extension settings.
- */
-
-(function() {
-  'use strict';
-
-  const APP_NAME = '{capitalize(site)}';
-  const SCRIPT_ID = '{scriptFilename}';
-
-  console.log(\`[\${APP_NAME}][\${SCRIPT_ID}] Initializing...\`);
-
-  // Add keyboard shortcut
-  document.addEventListener('keydown', (event) => {
-    // TODO: Customize key combination
-    // Example: Ctrl+K or Cmd+K
-    if ((event.ctrlKey || event.metaKey) && event.key === 'k') {
-      event.preventDefault();
-      
-      // TODO: Implement your logic here
-      console.log(\`[\${APP_NAME}][\${SCRIPT_ID}] Shortcut triggered\`);
-    }
-  });
-
-  console.log(\`[\${APP_NAME}][\${SCRIPT_ID}] Active\`);
-})();
-```
-
-**For Auto-feature:**
-```typescript
-/**
- * {featureName}
- * {featureName} on {site} {pathDescription or "pages"}
- * 
- * This script only runs if enabled in extension settings.
- * Requires: core/dom-utils.ts to be injected first
- */
-
-/// <reference path="{calculateRelativePath}/core/dom-utils.ts" />
-
-(function() {
-  'use strict';
-
-  const APP_NAME = '{capitalize(site)}';
-  const SCRIPT_ID = '{scriptFilename}';
-
-  console.log(\`[\${APP_NAME}][\${SCRIPT_ID}] Initializing...\`);
-  
-  // Wait for shared utilities to be available
-  if (!window.Debloater) {
-    console.error(\`[\${APP_NAME}][\${SCRIPT_ID}] Debloater utilities not loaded!\`);
-    return;
-  }
-
-  // Run initial enhancement
-  applyEnhancement();
-
-  // Observe for dynamic changes
-  const observer = new MutationObserver(() => {
-    applyEnhancement();
-  });
-  
-  observer.observe(document.body, {
-    childList: true,
-    subtree: true
-  });
-
-  function applyEnhancement() {
-    // TODO: Implement your logic here
-    // Example: Find elements and modify them
-    console.log(\`[\${APP_NAME}][\${SCRIPT_ID}] Applying enhancement\`);
-  }
-
-  console.log(\`[\${APP_NAME}][\${SCRIPT_ID}] Active\`);
-})();
-```
-
-#### File 2: Update Site Config
-**Path**: `src/page-scripts/{site}/{site}_config.ts`
-
-Add to appropriate array:
-- If `urlPattern` is null → add to `defaultScripts`
-- If `urlPattern` exists → add to `pathScripts`
-
-**New entry**:
-```typescript
+**Floating Button Example:**
+```json
 {
-  id: "{scriptFilename}",
-  name: "{featureName}",
-  description: "Add {featureName} to {site} {pathDescription or 'pages'}",
-  scriptPath: "{site}/{scriptDir}{scriptFilename}.js",
-  {urlPattern ? `urlPattern: "${urlPattern}",` : ''}
-  type: "enhancement",
-  defaultEnabled: false,
+  "sites": {
+    "github": {
+      "scripts": {
+        "goToTopButton": {
+          "id": "goToTopButton",
+          "name": "Go to Top Button",
+          "description": "Adds a floating button to scroll to top",
+          "type": "enhancement",
+          "defaultEnabled": true,
+          "enhancement": {
+            "enhancementType": "floating-button",
+            "floatingButton": {
+              "text": "↑",
+              "style": {
+                "position": "bottom-right",
+                "backgroundColor": "#0969da",
+                "color": "white",
+                "size": 50
+              },
+              "showOnScroll": 300,
+              "onClick": "scrollToTop"
+            }
+          }
+        }
+      }
+    }
+  }
 }
 ```
 
-### Step 5: Report Success & Next Steps
-
-```
-✅ FILES CREATED SUCCESSFULLY!
-
-📁 Created:
-  • src/page-scripts/{site}/{scriptDir}{scriptFilename}.ts
-  
-📝 Updated:
-  • src/page-scripts/{site}/{site}_config.ts
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📝 TODO: IMPLEMENT YOUR LOGIC
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-The script file has been created with a template.
-You need to implement your specific logic:
-
-1. Open: src/page-scripts/{site}/{scriptDir}{scriptFilename}.ts
-
-2. Find the TODO comments
-
-3. Implement your enhancement logic
-
-4. Customize styling, behavior, etc.
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🚀 NEXT STEPS
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-1. Implement the TODO sections in the script file
-
-2. Build the extension:
-   npm run build
-
-3. Reload extension in Chrome:
-   chrome://extensions/ → Click reload icon
-
-4. Test on {site}:
-   • Open {site} settings page
-   • Find "{featureName}" under Enhancements
-   • Enable the toggle
-   • Click "Apply Changes"
-   • Navigate to {site} and verify it works
-
-5. Check console logs:
-   • F12 → Console tab
-   • Look for: [{capitalize(site)}][{scriptFilename}] messages
-
-💡 TIPS:
-   • Use window.Debloater helpers for DOM manipulation
-   • Test on different pages if URL-specific
-   • Add proper error handling
-   • Consider dark mode styling if adding UI
-
-🐛 TROUBLESHOOTING:
-   • Enhancement not appearing? Check console for errors
-   • Script not running? Verify config syntax and URL pattern
-   • Build errors? Check TypeScript syntax
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+**Keyboard Shortcut Example:**
+```json
+{
+  "scrollShortcut": {
+    "id": "scrollShortcut",
+    "name": "Scroll to Top Shortcut",
+    "description": "Press Ctrl+Shift+T to scroll to top",
+    "type": "enhancement",
+    "defaultEnabled": true,
+    "enhancement": {
+      "enhancementType": "keyboard-shortcut",
+      "keyboardShortcut": {
+        "keys": "ctrl+shift+t",
+        "action": "scrollToTop",
+        "preventDefault": true
+      }
+    }
+  }
+}
 ```
 
-## Helper Functions
-
-### calculateRelativePath
-Based on `scriptDir`, calculate relative path to core:
-- `add/` → `../../../core/dom-utils.ts`
-- `add/navigation/` → `../../../../core/dom-utils.ts`
-- `add/tools/utils/` → `../../../../../core/dom-utils.ts`
-
-Count slashes in scriptDir + 2 for {site} and page-scripts.
-
-## Examples
-
-### Example 1: Go to Top Button on GitHub
-```
-Site: GitHub
-Enhancement: Go to Top Button
-Type: Button/UI element
-Runs on: All GitHub pages
-Script dir: add/navigation/
-Filename: goToTopButton
-Wait for: body
-```
-
-### Example 2: Video Speed Shortcuts on YouTube
-```
-Site: YouTube
-Enhancement: Video Speed Keyboard Shortcuts
-Type: Keyboard shortcut
-Runs on: youtube\.com/watch.*
-Script dir: add/shortcuts/
-Filename: videoSpeedShortcuts
-Wait for: .video-stream
+**With Action Parameters:**
+```json
+{
+  "rewindButton": {
+    "id": "rewindButton",
+    "name": "Rewind 30s Button",
+    "description": "Rewind video by 30 seconds",
+    "type": "enhancement",
+    "defaultEnabled": true,
+    "enhancement": {
+      "enhancementType": "floating-button",
+      "floatingButton": {
+        "text": "⏪30s",
+        "style": {
+          "position": "bottom-left",
+          "backgroundColor": "#ff0000",
+          "color": "white",
+          "size": 60
+        },
+        "showOnScroll": 0,
+        "onClick": "rewindVideo",
+        "onClickParams": [30]
+      }
+    }
+  }
+}
 ```
 
-### Example 3: Auto-expand Comments on Instagram
+**Page-Specific (URL Pattern):**
+```json
+{
+  "videoControls": {
+    "id": "videoControls",
+    "name": "Video Shortcuts",
+    "description": "Keyboard shortcuts for YouTube videos",
+    "type": "enhancement",
+    "defaultEnabled": true,
+    "urlPattern": "youtube\\.com/watch.*",
+    "enhancement": {
+      "enhancementType": "keyboard-shortcut",
+      "keyboardShortcut": {
+        "keys": "space",
+        "action": "playPause",
+        "preventDefault": true
+      }
+    }
+  }
+}
 ```
-Site: Instagram  
-Enhancement: Auto-expand Comments
-Type: Auto-feature
-Runs on: instagram\.com/p/.*
-Script dir: add/auto/
-Filename: autoExpandComments
-Wait for: article
+
+### Step 4: Test & Deploy
+
+**Local Test:**
+```bash
+npm run build
+# Reload extension in chrome://extensions
+# Navigate to target site
+# Check button appears or shortcut works
+# Console: [site][scriptId] messages
 ```
 
-## Quality Checklist
+**Deploy:**
+```bash
+git add config/scripts-config.json
+git commit -m "Add [feature] enhancement for [site]"
+git push origin main
+```
 
-Before finalizing:
-- [ ] Script file has proper JSDoc comment
-- [ ] Script ID matches filename
-- [ ] Template includes helpful TODO comments
-- [ ] URL pattern is tested if path-specific
-- [ ] Config entry has all required fields
-- [ ] Relative path to dom-utils is correct (if needed)
-- [ ] Implementation guidance provided
-- [ ] Next steps are clear
+## Configuration Reference
 
-## Anti-patterns to Avoid
+```typescript
+{
+  "id": string,
+  "name": string,
+  "description": string,
+  "type": "enhancement",
+  "defaultEnabled": boolean,
+  "urlPattern"?: string,
+  "enhancement": {
+    "enhancementType": "floating-button" | "keyboard-shortcut",
+    
+    // If floating-button:
+    "floatingButton"?: {
+      "text": string,              // Text or emoji
+      "icon"?: string,             // Alternative to text
+      "style"?: {
+        "position"?: "bottom-right"|"bottom-left"|"top-right"|"top-left",
+        "backgroundColor"?: string,  // Hex color
+        "color"?: string,           // Text color
+        "size"?: number             // Pixels
+      },
+      "showOnScroll"?: number,     // Pixels (0 = always visible)
+      "onClick": string,           // Predefined action name
+      "onClickParams"?: any[]      // Parameters for action
+    },
+    
+    // If keyboard-shortcut:
+    "keyboardShortcut"?: {
+      "keys": string,              // "ctrl+t", "alt+space"
+      "action": string,            // Predefined action name
+      "actionParams"?: any[],      // Parameters for action
+      "preventDefault"?: boolean   // Block browser default
+    }
+  }
+}
+```
 
-❌ Creating removal scripts (use add-removal-script instead)
-❌ Adding scripts without implementation guidance
-❌ Forgetting to mention TODO sections to user
-❌ Not providing example code patterns
-❌ Skipping the "implement your logic" reminder
+## Button Styling Tips
 
-## Success Criteria
+**Colors:**
+- GitHub blue: `#0969da`
+- YouTube red: `#ff0000`
+- Success green: `#4CAF50`
+- Warning orange: `#FF9800`
+- Neutral gray: `#757575`
 
-User should have:
-✅ Working enhancement script template
-✅ Script registered in site config
-✅ Clear understanding of what to implement
-✅ Example code for their enhancement type
-✅ Knowledge of how to test and debug
+**Positions:**
+- `bottom-right` - Most common for scroll buttons
+- `bottom-left` - For secondary actions
+- `top-right` - For always-visible actions
+- `top-left` - Rare, use sparingly
 
----
+**Sizes:**
+- Small: `40px`
+- Medium: `50px`
+- Large: `60px`
 
-**Remember**: Enhancement scripts need custom implementation - always remind user to fill in TODO sections!
+**Scroll Threshold:**
+- `0` - Always visible (use sparingly)
+- `300` - Standard (appears after small scroll)
+- `500` - Delayed (appears after more scrolling)
+
+## Common Use Cases
+
+**Scroll to Top:**
+```json
+{
+  "text": "↑",
+  "position": "bottom-right",
+  "backgroundColor": "#0969da",
+  "showOnScroll": 300,
+  "onClick": "scrollToTop"
+}
+```
+
+**Scroll to Bottom:**
+```json
+{
+  "text": "↓",
+  "position": "bottom-left",
+  "backgroundColor": "#FF9800",
+  "showOnScroll": 300,
+  "onClick": "scrollToBottom"
+}
+```
+
+**Copy URL:**
+```json
+{
+  "text": "🔗",
+  "position": "top-right",
+  "backgroundColor": "#4CAF50",
+  "showOnScroll": 0,
+  "onClick": "copyCurrentURL"
+}
+```
+
+**Print Page:**
+```json
+{
+  "keys": "ctrl+p",
+  "action": "printPage",
+  "preventDefault": true
+}
+```
+
+## Troubleshooting
+
+**Button not appearing?**
+- Check console for errors
+- Verify predefined action exists
+- Check if CSP blocking (shouldn't with current implementation)
+- Scroll past threshold if `showOnScroll` > 0
+
+**Shortcut not working?**
+- Check for key conflicts with browser/site
+- Verify `preventDefault` setting
+- Test in console: `document.addEventListener('keydown', e => console.log(e.key))`
+- Check modifiers match (ctrl, shift, alt)
+
+**Action not executing?**
+- Check action name spelling
+- Verify parameters format (array)
+- Check console for predefined action errors
+- Ensure action is appropriate (e.g., video actions need video element)
+
+## Notes
+
+- All enhancements are CSP-compliant (no eval)
+- Trusted Types compliant (uses textContent, not innerHTML)
+- Works on sites with strict security policies (GitHub, Google)
+- Buttons auto-hide/show based on scroll
+- Shortcuts use passive listeners for performance

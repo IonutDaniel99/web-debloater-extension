@@ -2,21 +2,14 @@ import { SiteConfig } from "../scripts";
 
 /**
  * INSTAGRAM CONFIG
+ * 
+ * All Instagram scripts have been migrated to data-driven architecture.
+ * See: config/scripts-config.json
  */
 export const INSTAGRAM_CONFIG: SiteConfig = {
   id: "instagram",
   name: "Instagram",
-  urlPatternBase: "instagram\\..*",
+  urlPatternBase: "instagram\\.com",
   defaultScripts: [],
-  pathScripts: [
-    {
-      id: "hideProfileContainerHome",
-      name: "Hide Profile Container (Home)",
-      description: "Remove profile container from Instagram home page",
-      scriptPath: "instagram/remove/home/hideProfileContainerHome.js",
-      urlPattern: "instagram\.com/?(?:\\?.*)?$",
-      type: "removal",
-      defaultEnabled: false,
-    },
-  ],
+  pathScripts: [],
 };

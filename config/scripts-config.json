@@ -1,0 +1,190 @@
+{
+    "version": "2026.3.27.1200",
+    "lastUpdated": "2026-03-27T12:00:00Z",
+    "sites": {
+        "youtube": {
+            "name": "YouTube",
+            "urlPatternBase": "youtube\\.com",
+            "icon": "youtube",
+            "scripts": {
+                "hideShortsButton": {
+                    "id": "hideShortsButton",
+                    "name": "Hide Shorts Button",
+                    "description": "Removes the 'Shorts' button from YouTube navigation",
+                    "type": "removal",
+                    "defaultEnabled": false,
+                    "removal": {
+                        "selectors": [
+                            {
+                                "selector": "ytd-guide-entry-renderer a[title='Shorts']",
+                                "type": "css"
+                            },
+                            {
+                                "selector": "ytd-mini-guide-entry-renderer a[title='Shorts']",
+                                "type": "css"
+                            }
+                        ],
+                        "observeChanges": true
+                    }
+                },
+                "hideShortsHome": {
+                    "id": "hideShortsHome",
+                    "name": "Hide Shorts on Home",
+                    "description": "Removes the Shorts shelf from YouTube home page",
+                    "type": "removal",
+                    "defaultEnabled": false,
+                    "urlPattern": "youtube\\.com/?$",
+                    "removal": {
+                        "selectors": [
+                            {
+                                "selector": "ytd-rich-shelf-renderer[is-shorts]",
+                                "type": "css"
+                            },
+                            {
+                                "selector": "ytd-reel-shelf-renderer",
+                                "type": "css"
+                            }
+                        ],
+                        "observeChanges": true,
+                        "retryDelay": 1000
+                    }
+                },
+                "hideShortsSubscriptions": {
+                    "id": "hideShortsSubscriptions",
+                    "name": "Hide Shorts on Subscriptions",
+                    "description": "Removes the Shorts shelf from subscriptions page",
+                    "type": "removal",
+                    "defaultEnabled": false,
+                    "urlPattern": "youtube\\.com/feed/subscriptions",
+                    "removal": {
+                        "selectors": [
+                            {
+                                "selector": "ytd-rich-shelf-renderer[is-shorts]",
+                                "type": "css"
+                            },
+                            {
+                                "selector": "ytd-reel-shelf-renderer",
+                                "type": "css"
+                            }
+                        ],
+                        "observeChanges": true
+                    }
+                },
+                "goToTopButton":{
+                    "id": "goToTopButton",
+                    "name": "Go to Top Button (YouTube)",
+                    "description": "Scroll to top on YouTube",
+                    "type": "enhancement",
+                    "defaultEnabled": true,
+                    "enhancement": {
+                        "enhancementType": "floating-button",
+                        "floatingButton": {
+                            "text": "↑",
+                            "style": {
+                                "position": "bottom-right",
+                                "backgroundColor": "#ff0000",
+                                "color": "white",
+                                "size": 50
+                            },
+                            "showOnScroll": 300,
+                            "onClick": "scrollToTop"
+                        }
+                    }
+                }
+            }
+        },
+        "github": {
+            "name": "GitHub",
+            "urlPatternBase": "github\\.com",
+            "icon": "github",
+            "scripts": {
+                "goToTopButton": {
+                    "id": "goToTopButton",
+                    "name": "Go to Top Button",
+                    "description": "Adds a floating 'Go to Top' button on all GitHub pages",
+                    "type": "enhancement",
+                    "defaultEnabled": true,
+                    "enhancement": {
+                        "enhancementType": "floating-button",
+                        "floatingButton": {
+                            "text": "↑",
+                            "style": {
+                                "position": "bottom-right",
+                                "backgroundColor": "#0969da",
+                                "color": "white",
+                                "size": 50
+                            },
+                            "showOnScroll": 300,
+                            "onClick": "scrollToTop"
+                        }
+                    }
+                }
+            }
+        },
+        "instagram": {
+            "name": "Instagram",
+            "urlPatternBase": "instagram\\.com",
+            "icon": "instagram",
+            "scripts": {
+                "hideProfileContainerHome": {
+                    "id": "hideProfileContainerHome",
+                    "name": "Hide Profile Container on Home",
+                    "description": "Removes profile container elements from Instagram home page",
+                    "type": "removal",
+                    "defaultEnabled": false,
+                    "urlPattern": "instagram\\.com/?($|\\?)",
+                    "removal": {
+                        "selectors": [
+                            {
+                                "selector": "x1dr59a3 x13vifvy x7vhb2i x6bx242",
+                                "type": "class"
+                            }
+                        ],
+                        "observeChanges": true
+                    }
+                }
+            }
+        },
+        "whatsapp": {
+            "name": "WhatsApp",
+            "urlPatternBase": "web\\.whatsapp\\.com",
+            "icon": "whatsapp",
+            "scripts": {
+                "removeGetWhatsappForWindows": {
+                    "id": "removeGetWhatsappForWindows",
+                    "name": "Remove 'Get WhatsApp for Windows'",
+                    "description": "Removes the promotional banner for WhatsApp desktop app",
+                    "type": "removal",
+                    "defaultEnabled": false,
+                    "removal": {
+                        "selectors": [
+                            {
+                                "selector": "#side > div:nth-child(6)",
+                                "type": "css"
+                            },
+                            {
+                                "selector": "div[data-testid='popup-contents']",
+                                "type": "css"
+                            },
+                            {
+                                "selector": "//div[contains(text(), 'Get WhatsApp for Windows')]//ancestor::div[@role='dialog']",
+                                "type": "xpath"
+                            }
+                        ],
+                        "observeChanges": true,
+                        "waitForFirstUserInput": true,
+                        "checkAfterFirstInput": 250
+                    }
+                },
+                "privacyBlurControls": {
+                    "id": "privacyBlurControls",
+                    "name": "Privacy Blur Controls",
+                    "description": "Adds privacy blur controls to WhatsApp Web interface (custom bundled script)",
+                    "type": "enhancement",
+                    "defaultEnabled": true,
+                    "bundled": true
+                }
+            }
+        }
+    }
+}

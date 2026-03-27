@@ -1,666 +1,427 @@
 ---
 name: add-new-site
-description: 'Add a completely new site to the Web Debloater & Enhancer extension (e.g., Twitter, Reddit, Facebook). Creates all necessary structure: config, page component, icon, manifest permissions, and example script. Complete setup workflow.'
-argument-hint: 'Name of site to add (e.g., "Twitter", "Reddit")'
+description: 'Add a completely new site to the extension with data-driven scripts. Requires updating scripts-config.json, UI configs, and bundled configs.'
+argument-hint: 'Site to add (e.g., "Twitter", "Reddit", "LinkedIn")'
 ---
 
-# Add New Site to Extension
+# Add New Site
 
-Comprehensive workflow for adding a completely new site to the Web Debloater & Enhancer extension.
+Add a completely new site to the extension with full data-driven support.
 
 ## When to Use
 
-- Adding support for a new website (Twitter, Reddit, Facebook, TikTok, etc.)
-- Creating the complete structure for a new site
-- Setting up all required files and configurations
+✅ **Use for:**
+- Adding a new website to the extension
+- First script for a site not yet supported
 
-**Do NOT use for:**
-- Adding scripts to existing sites (use add-removal-script or add-enhancement-script)
-- Modifying existing sites (edit directly)
+❌ **Use add-script instead for:**
+- Adding scripts to existing sites (YouTube, GitHub, Instagram, WhatsApp)
 
-## What This Skill Does
+## Overview
 
-This skill will create:
-1. ✅ Site configuration file
-2. ✅ Site page component (React/TypeScript)
-3. ✅ Directory structure in page-scripts
-4. ✅ Example removal script (optional)
-5. ✅ Icon (placeholder or custom)
-6. ✅ Update manifest permissions
-7. ✅ Update central scripts registry
-8. ✅ Update page routing
-9. ✅ Update sidebar navigation
-
-## ⚠️ Important Note
-
-This is a **complex multi-file operation**. Make sure you:
-- Have a clear understanding of the site's URL structure
-- Know what you want to remove/add initially
-- Have tested the site's HTML structure
-- Are ready to implement custom logic after setup
+Adding a new site requires updating:
+1. `config/scripts-config.json` - Site definition + scripts
+2. `src/webpage/configs/pages.tsx` - UI route
+3. `src/page-scripts/{site}/{site}_config.ts` - Empty bundled config
+4. Icons (if needed)
 
 ## Procedure
 
-### Step 1: Gather Site Information
+### Step 1: Basic Information
 
-#### Q1: Site name
+**Q1: Site details**
 ```
-What is the site name? (e.g., "Twitter", "Reddit", "Facebook")
-Use proper capitalization.
-
-Site name:
-```
-
-Store as: `siteName` (e.g., "Twitter")
-Derive: `siteId` = lowercase(siteName) (e.g., "twitter")
-
-#### Q2: Site URL
-```
-What is the base URL of this site?
-Examples: twitter.com, reddit.com, facebook.com
-
-Base URL (without https://):
+1. Site name? (e.g., "Twitter", "Reddit")
+2. Domain? (e.g., "twitter.com", "reddit.com")
+3. Site ID? (lowercase, e.g., "twitter", "reddit")
 ```
 
-Store as: `baseUrl` (e.g., "twitter.com")
-
-#### Q3: URL pattern
+**Q2: Initial scripts**
 ```
-What regex pattern should match all pages of this site?
-Common patterns:
-  - twitter\\.com        (basic)
-  - twitter\\..*/.*      (with subdomains and paths)
-  - (twitter|x)\\.com    (multiple domains)
+Do you want to add scripts now?
+1. Yes - Start with removal/enhancement scripts
+2. No - Just set up site structure
 
-URL Pattern (regex):
+If Yes, ask for:
+- Script type (removal/enhancement)
+- Script details (use add-script questions)
 ```
 
-Store as: `urlPattern` (e.g., "twitter\\.com")
+### Step 2: Add to scripts-config.json
 
-#### Q4: Icon
-```
-Do you have a custom icon SVG for this site?
-1. Yes, I'll provide the SVG content
-2. No, use a placeholder
+Edit `config/scripts-config.json` and add new site section:
 
-Enter number (1-2):
-```
-
-If 1, ask:
-```
-Paste the SVG content (full <svg> tag):
-```
-
-Store as: `iconSvg` (or generate placeholder)
-
-#### Q5: Primary color
-```
-What is the brand's primary color? (for UI theming)
-Examples: #1DA1F2 (Twitter blue), #FF4500 (Reddit orange)
-
-Hex color:
+**Minimal Site Entry:**
+```json
+{
+  "sites": {
+    "twitter": {
+      "name": "Twitter",
+      "urlPatternBase": "twitter\\.com",
+      "icon": "twitter",
+      "scripts": {}
+    }
+  }
+}
 ```
 
-Store as: `primaryColor`
-
-#### Q6: Initial script
-```
-Do you want to create an example removal script now?
-This helps test that everything is working.
-
-1. Yes, create example script
-2. No, just create the structure
-
-Enter number (1-2):
-```
-
-Store as: `createExample`
-
-If 1, gather script details (simplified):
-```
-What should the example script remove? (e.g., "Trending sidebar")
-Feature name:
-```
-
-```
-CSS selector for this element:
-```
-
-Store as: `exampleFeature`, `exampleSelector`
-
-### Step 2: Validate & Confirm
-
-Show summary:
-```
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📋 NEW SITE CONFIGURATION
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Site Name:      {siteName}
-Site ID:        {siteId}
-Base URL:       {baseUrl}
-URL Pattern:    {urlPattern}
-Color:          {primaryColor}
-Icon:           {iconSvg ? 'Custom SVG' : 'Placeholder'}
-Example Script: {createExample ? exampleFeature : 'None'}
-
-FILES TO CREATE:
-  • src/page-scripts/{siteId}/{siteId}_config.ts
-  • src/page-scripts/{siteId}/remove/ (directory)
-  • src/page-scripts/{siteId}/add/ (directory)
-  • src/webpage/pages/{siteId}.tsx
-  • public/icons/{siteId}.svg
-  {createExample ? `• src/page-scripts/{siteId}/remove/example.ts` : ''}
-
-FILES TO UPDATE:
-  • src/page-scripts/scripts.ts
-  • src/webpage/configs/pages.tsx
-  • public/manifest.json
-  • vite.config.ts
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-This will create {createExample ? '14' : '13'} file operations.
-Proceed? (y/n):
+**With Initial Script:**
+```json
+{
+  "sites": {
+    "reddit": {
+      "name": "Reddit",
+      "urlPatternBase": "reddit\\.com",
+      "icon": "reddit",
+      "scripts": {
+        "hideAds": {
+          "id": "hideAds",
+          "name": "Hide Sponsored Posts",
+          "description": "Removes sponsored posts from Reddit feed",
+          "type": "removal",
+          "defaultEnabled": false,
+          "removal": {
+            "selectors": [
+              {
+                "selector": "[data-promoted-post-id]",
+                "type": "css"
+              }
+            ],
+            "observeChanges": true
+          }
+        }
+      }
+    }
+  }
+}
 ```
 
-### Step 3: Create Directory Structure
+### Step 3: Add UI Route
 
-Create directories:
+Edit `src/webpage/configs/pages.tsx`:
+
+```typescript
+export const PAGES: PagesInterface[] = [
+  {
+    id: 'home',
+    element: <Home />,
+    path: '/'
+  },
+  // ... existing pages ...
+  {
+    id: 'twitter',  // New site
+    element: <DynamicSitePage siteId="twitter" />,
+    path: '/site/twitter'
+  }
+];
 ```
-src/page-scripts/{siteId}/
-src/page-scripts/{siteId}/remove/
-src/page-scripts/{siteId}/add/
-```
 
-### Step 4: Create Site Config File
+### Step 4: Create Bundled Config (Empty)
 
-**Path**: `src/page-scripts/{siteId}/{siteId}_config.ts`
+Create `src/page-scripts/{site}/{site}_config.ts`:
 
-**Content**:
 ```typescript
 import { SiteConfig } from "../scripts";
 
 /**
- * {siteName.toUpperCase()} CONFIG
+ * {SITE_NAME} CONFIG
+ * 
+ * All {site} scripts have been migrated to data-driven architecture.
+ * See: config/scripts-config.json
  */
-export const {siteId.toUpperCase()}_CONFIG: SiteConfig = {
-  id: "{siteId}",
-  name: "{siteName}",
-  urlPatternBase: "{urlPattern}",
-  defaultScripts: [
-    {createExample && exampleFeature ? `
-    {
-      id: "removeExample",
-      name: "Remove {exampleFeature}",
-      description: "Remove {exampleFeature} from {siteName}",
-      scriptPath: "{siteId}/remove/example.js",
-      defaultEnabled: false,
-      type: "removal",
-    },
-    ` : '// Add default scripts here'}
-  ],
-  pathScripts: [
-    // Add path-specific scripts here
-  ],
+export const {SITE_ID}_CONFIG: SiteConfig = {
+  id: "{site}",
+  name: "{Site Name}",
+  urlPatternBase: "{domain}\\\\.com",
+  defaultScripts: [],
+  pathScripts: [],
 };
 ```
 
-### Step 5: Create Example Script (if requested)
-
-If `createExample`, create:
-
-**Path**: `src/page-scripts/{siteId}/remove/example.ts`
-
-**Content**:
+**Example for Twitter:**
 ```typescript
+import { SiteConfig } from "../scripts";
+
 /**
- * Remove {exampleFeature}
- * Example removal script for {siteName}
+ * TWITTER CONFIG
  * 
- * This script only runs if enabled in extension settings.
- * Requires: core/dom-utils.ts to be injected first
+ * All Twitter scripts have been migrated to data-driven architecture.
+ * See: config/scripts-config.json
  */
-
-/// <reference path="../../../core/dom-utils.ts" />
-
-(function() {
-  'use strict';
-
-  const APP_NAME = '{siteName}';
-  const SCRIPT_ID = 'removeExample';
-
-  console.log(\`[\${APP_NAME}][\${SCRIPT_ID}] Initializing...\`);
-  
-  // Wait for shared utilities to be available
-  if (!window.Debloater) {
-    console.error(\`[\${APP_NAME}][\${SCRIPT_ID}] Debloater utilities not loaded!\`);
-    return;
-  }
-
-  // Get selectors from storage
-  const SELECTORS = window.Debloater.getSelectors('{siteId}.example');
-
-  // Initial removal
-  const removed = window.Debloater.deleteElements(SELECTORS);
-  if (removed > 0) {
-    console.log(\`[\${APP_NAME}][\${SCRIPT_ID}] Removed \${removed} elements\`);
-  }
-
-  // Observe for dynamic changes
-  if (SELECTORS && (Array.isArray(SELECTORS) ? SELECTORS.length > 0 : true)) {
-    window.Debloater.observeAndRemove(SELECTORS);
-  }
-
-  console.log(\`[\${APP_NAME}][\${SCRIPT_ID}] Active\`);
-})();
+export const TWITTER_CONFIG: SiteConfig = {
+  id: "twitter",
+  name: "Twitter",
+  urlPatternBase: "twitter\\.com",
+  defaultScripts: [],
+  pathScripts: [],
+};
 ```
 
-### Step 6: Create Page Component
+### Step 5: Update scripts.ts
 
-**Path**: `src/webpage/pages/{siteId}.tsx`
+Edit `src/page-scripts/scripts.ts`:
 
-**Content**:
 ```typescript
-import { Button } from '@/webpage/components/ui/button';
-import { SCRIPTS_CONFIG } from '@/page-scripts/scripts';
-import { useSettings } from '@/webpage/hooks/useSettings';
-import { cn } from '@/webpage/lib/utils';
-import { Trash2, Sparkles, Save } from 'lucide-react';
-import { SiteIcon } from '@/webpage/components/SiteIcon';
-import { RenderScriptGroup } from '@/webpage/components/RenderScriptGroup';
+import { GITHUB_CONFIG } from "./github/github_config";
+import { INSTAGRAM_CONFIG } from "./instagram/instagram_config";
+import { YOUTUBE_CONFIG } from "./youtube/youtube_config";
+import { WHATSAPP_CONFIG } from "./whatsapp/whatsapp_config";
+import { TWITTER_CONFIG } from "./twitter/twitter_config"; // Add import
 
-const SITE_ID = '{siteId}';
-
-export function {capitalize(siteId)}Page() {
-  const {
-    versions,
-    handleSettingChange,
-    handleApplyChanges,
-    getCurrentSetting,
-    hasPendingChanges,
-    isExtension,
-  } = useSettings();
-
-  const site = SCRIPTS_CONFIG.find(s => s.id === SITE_ID);
-  
-  if (!site) {
-    return <div>Site configuration not found</div>;
-  }
-
-  const allScripts = [...site.defaultScripts, ...site.pathScripts];
-  const siteHasPendingChanges = hasPendingChanges(site.id);
-
-  // Group scripts by type
-  const removalScripts = allScripts.filter(s => s.type === 'removal');
-  const enhancementScripts = allScripts.filter(s => s.type === 'enhancement');
-
-  return (
-    <div className="flex flex-col h-full bg-background">
-      {/* Header */}
-      <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center gap-3">
-            <div className={cn(
-              "w-10 h-10 rounded-xl flex items-center justify-center",
-              "bg-gradient-to-br from-[{primaryColor}]/10 to-[{primaryColor}]/5",
-              "ring-1 ring-[{primaryColor}]/20"
-            )}>
-              <SiteIcon siteId={SITE_ID} size={28} />
-            </div>
-            <div className="flex-1">
-              <h1 className="text-xl font-bold text-foreground">{site.name}</h1>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Manage {allScripts.length} script{allScripts.length !== 1 ? 's' : ''} 
-                {removalScripts.length > 0 && \` • \${removalScripts.length} removal\${removalScripts.length !== 1 ? 's' : ''}\`}
-                {enhancementScripts.length > 0 && \` • \${enhancementScripts.length} enhancement\${enhancementScripts.length !== 1 ? 's' : ''}\`}
-              </p>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Content */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="max-w-7xl mx-auto px-6 py-6 space-y-6">
-          <RenderScriptGroup
-            scripts={removalScripts}
-            title="Remove Content"
-            icon={<Trash2 className="w-4 h-4" />}
-            accentColor="red"
-            siteId={site.id}
-            versions={versions}
-            getCurrentSetting={getCurrentSetting}
-            handleSettingChange={handleSettingChange}
-          />
-          <RenderScriptGroup
-            scripts={enhancementScripts}
-            title="Enhancements"
-            icon={<Sparkles className="w-4 h-4" />}
-            accentColor="blue"
-            siteId={site.id}
-            versions={versions}
-            getCurrentSetting={getCurrentSetting}
-            handleSettingChange={handleSettingChange}
-          />
-        </div>
-      </div>
-
-      {/* Apply Button (Floating) */}
-      {siteHasPendingChanges && (
-        <div className={cn(
-          "sticky bottom-0 border-t bg-card/95 backdrop-blur-sm",
-          "shadow-2xl shadow-black/10"
-        )}>
-          <div className="max-w-7xl mx-auto px-6 py-3">
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex-1">
-                <p className="text-sm font-semibold text-foreground flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                  Unsaved changes
-                </p>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  {isExtension 
-                    ? 'Changes will be applied and active tabs will be refreshed'
-                    : 'Demo mode - changes are simulated'}
-                </p>
-              </div>
-              <Button
-                onClick={() => handleApplyChanges(site.id, site.name)}
-                className={cn(
-                  "gap-2 bg-primary hover:bg-primary/90",
-                  "shadow-lg shadow-primary/25"
-                )}
-              >
-                <Save className="w-4 h-4" />
-                Apply Changes
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-```
-
-### Step 7: Create Icon
-
-**Path**: `public/icons/{siteId}.svg`
-
-**Content**:
-```svg
-{iconSvg || generatePlaceholderIcon(siteName, primaryColor)}
-```
-
-Placeholder icon template:
-```svg
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="{primaryColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-  <circle cx="12" cy="12" r="10"/>
-  <text x="12" y="16" text-anchor="middle" fill="{primaryColor}" font-size="10" font-weight="bold">{siteName[0]}</text>
-</svg>
-```
-
-### Step 8: Update Central Scripts Registry
-
-**Path**: `src/page-scripts/scripts.ts`
-
-Add import:
-```typescript
-import { {siteId.toUpperCase()}_CONFIG } from "./{siteId}/{siteId}_config";
-```
-
-Add to export array:
-```typescript
 export const SCRIPTS_CONFIG: SiteConfig[] = [
   YOUTUBE_CONFIG,
   GITHUB_CONFIG,
   INSTAGRAM_CONFIG,
-  {siteId.toUpperCase()}_CONFIG, // ← Add here
+  WHATSAPP_CONFIG,
+  TWITTER_CONFIG, // Add to array
 ];
 ```
 
-### Step 9: Update Page Routing
+### Step 6: Add Icon (Optional)
 
-**Path**: `src/webpage/configs/pages.tsx`
+**If using a custom icon:**
 
-Add import:
+1. Add icon component to `src/webpage/components/SiteIcon.tsx`:
+
 ```typescript
-import { {capitalize(siteId)}Page } from '@/webpage/pages/{siteId}';
+import {
+  Youtube,
+  Github,
+  Instagram,
+  MessageCircle,
+  Twitter,  // Add icon import
+  Home as HomeIcon,
+} from "lucide-react";
+
+// In the switch statement:
+case "twitter":
+  return <Twitter size={size} className={className} />;
 ```
 
-Add icon import:
-```typescript
-import {capitalize(siteId)}Icon from '@/../public/icons/{siteId}.svg?react';
+**Available lucide-react icons:**
+- Twitter
+- Linkedin
+- Facebook
+- MessageSquare (Discord)
+- Chrome (Browser)
+- Globe (Generic)
+
+### Step 7: Build and Test
+
+```bash
+# Build
+npm run build
+
+# Reload extension
+# chrome://extensions → Reload button
+
+# Test:
+# 1. Open extension settings
+# 2. New site should appear in sidebar
+# 3. Click on site
+# 4. Scripts should be listed (if added)
+# 5. Navigate to site domain
+# 6. Scripts should inject
 ```
 
-Add to pages array:
-```typescript
-export const pages: PageConfig[] = [
-  // ... existing pages
-  {
-    id: '{siteId}',
-    name: '{siteName}',
-    path: '/{siteId}',
-    icon: {capitalize(siteId)}Icon,
-    component: {capitalize(siteId)}Page,
-  },
-];
+### Step 8: Verify Console
+
+Navigate to the new site and check console:
+```
+[ScriptInjector] URL: https://twitter.com
+[ScriptInjector] ✓ Injected dom-utils.js
+[ScriptInjector] ✓ Injected predefined actions
+[ScriptInjector] Found X remote scripts for twitter
+[ScriptInjector] ✓ Injected data-driven script twitter/scriptId
 ```
 
-### Step 10: Update Manifest Permissions
+## Complete Example: Adding Reddit
 
-**Path**: `public/manifest.json`
-
-Add to `host_permissions`:
+**1. scripts-config.json:**
 ```json
-"*://*.{baseUrl}/*"
-```
-
-Add to `web_accessible_resources`:
-```json
-"scripts/{siteId}/**/*.js"
-```
-
-### Step 11: Update Build Configuration
-
-**Path**: `vite.config.ts`
-
-Add the site's scripts directory to the build process.
-
-Find the section with `compileAndCopyDir` calls and add:
-
-```typescript
-await compileAndCopyDir(
-  resolve(__dirname, 'src/page-scripts/{siteId}'),
-  resolve(__dirname, 'dist/scripts/{siteId}')
-);
-```
-
-**Example**:
-```typescript
-// Compile and copy scripts
-await compileAndCopyDir(
-  resolve(__dirname, 'src/page-scripts/youtube'),
-  resolve(__dirname, 'dist/scripts/youtube')
-);
-await compileAndCopyDir(
-  resolve(__dirname, 'src/page-scripts/github'),
-  resolve(__dirname, 'dist/scripts/github')
-);
-await compileAndCopyDir(
-  resolve(__dirname, 'src/page-scripts/instagram'),
-  resolve(__dirname, 'dist/scripts/instagram')
-);
-await compileAndCopyDir(
-  resolve(__dirname, 'src/page-scripts/{siteId}'),  // ← Add here
-  resolve(__dirname, 'dist/scripts/{siteId}')
-);
-```
-
-⚠️ **Important**: Without this step, the TypeScript scripts won't be compiled to JavaScript and the extension will fail to inject them!
-
-### Step 12: Update Selectors (if example created)
-
-If `createExample`, update **`config/selectors.json`**:
-
-Add:
-```json
-"{siteId}": {
-  "example": {
-    "selector": "{exampleSelector}",
-    "type": "css"
+{
+  "sites": {
+    "reddit": {
+      "name": "Reddit",
+      "urlPatternBase": "reddit\\.com",
+      "icon": "reddit",
+      "scripts": {
+        "hideAds": {
+          "id": "hideAds",
+          "name": "Hide Sponsored Posts",
+          "description": "Removes promoted posts from Reddit",
+          "type": "removal",
+          "defaultEnabled": false,
+          "removal": {
+            "selectors": [
+              {
+                "selector": "[data-promoted-post-id]",
+                "type": "css"
+              },
+              {
+                "selector": "div[data-testid='post-container']:has([data-click-id='promoted'])",
+                "type": "css"
+              }
+            ],
+            "observeChanges": true
+          }
+        },
+        "scrollToTop": {
+          "id": "scrollToTop",
+          "name": "Scroll to Top Button",
+          "description": "Adds floating scroll button",
+          "type": "enhancement",
+          "defaultEnabled": true,
+          "enhancement": {
+            "enhancementType": "floating-button",
+            "floatingButton": {
+              "text": "↑",
+              "style": {
+                "position": "bottom-right",
+                "backgroundColor": "#FF5700",
+                "color": "white",
+                "size": 50
+              },
+              "showOnScroll": 300,
+              "onClick": "scrollToTop"
+            }
+          }
+        }
+      }
+    }
   }
 }
 ```
 
-### Step 13: Report Success & Next Steps
-
-```
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-✅ SITE ADDED SUCCESSFULLY!
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-📁 Created {totalFiles} files:
-
-STRUCTURE:
-  • src/page-scripts/{siteId}/{siteId}_config.ts
-  • src/page-scripts/{siteId}/remove/ (directory)
-  • src/page-scripts/{siteId}/add/ (directory)
-  {createExample ? `• src/page-scripts/{siteId}/remove/example.ts` : ''}
-  
-UI:
-  • src/webpage/pages/{siteId}.tsx
-  • public/icons/{siteId}.svg
-  
-UPDATED:
-  • src/page-scripts/scripts.ts
-  • src/webpage/configs/pages.tsx  
-  • public/manifest.json
-  • vite.config.ts
-  {createExample ? `• config/selectors.json` : ''}
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🚀 NEXT STEPS
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-1. Build the extension:
-   npm run build
-
-2. Reload extension in Chrome:
-   chrome://extensions/ → Click reload icon
-
-3. Test the new site appears in UI:
-   • Open extension settings
-   • Verify "{siteName}" appears in sidebar
-   • Click on it to see the page
-
-4. Test on {baseUrl}:
-   • Navigate to https://{baseUrl}
-   • Open DevTools (F12) → Console
-   • Look for: [{siteName}] initialization logs
-   {createExample ? `• Enable the example script and test removal` : ''}
-
-5. Add more scripts:
-   Use /add-removal-script or /add-enhancement-script
-   to add features for {siteName}
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📚 DOCUMENTATION
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Update these files with {siteName} info:
-  • README.md - Add to supported sites list
-  • docs/README.md - Add examples if needed
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🐛 TROUBLESHOOTING
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Icon not showing?
-  → Check SVG syntax in public/icons/{siteId}.svg
-
-Page not appearing?
-  → Verify all imports in pages.tsx
-
-Scripts not loading?
-  → Check manifest.json permissions
-  → Verify URL pattern matches actual URLs
-  → Ensure vite.config.ts includes the site directory
-  → Verify compiled .js files exist in dist/scripts/{siteId}/
-
-Build errors?
-  → Run: npm run build
-  → Check TypeScript errors
-  → Verify all file paths
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+**2. pages.tsx:**
+```typescript
+{
+  id: 'reddit',
+  element: <DynamicSitePage siteId="reddit" />,
+  path: '/site/reddit'
+}
 ```
 
-## Quality Checklist
+**3. reddit_config.ts:**
+```typescript
+import { SiteConfig } from "../scripts";
 
-Before finalizing site creation:
-- [ ] Site ID is lowercase and URL-safe
-- [ ] URL pattern accurately matches all site pages
-- [ ] Icon exists and is valid SVG
-- [ ] Config file has proper TypeScript types
-- [ ] Page component follows existing pattern
-- [ ] Manifest permissions are correct
-- [ ] All imports use correct paths
-- [ ] Build completes without errors
-
-## Common Site Patterns
-
-### Twitter/X
-```
-Site: Twitter
-ID: twitter
-URL: twitter.com or x.com
-Pattern: (twitter|x)\\.com
+export const REDDIT_CONFIG: SiteConfig = {
+  id: "reddit",
+  "name": "Reddit",
+  urlPatternBase: "reddit\\.com",
+  defaultScripts: [],
+  pathScripts: [],
+};
 ```
 
-### Reddit
-```
-Site: Reddit
-ID: reddit
-URL: reddit.com
-Pattern: reddit\\.com
-```
+**4. scripts.ts:**
+```typescript
+import { REDDIT_CONFIG } from "./reddit/reddit_config";
 
-### TikTok
-```
-Site: TikTok
-ID: tiktok
-URL: tiktok.com
-Pattern: tiktok\\.com
+export const SCRIPTS_CONFIG: SiteConfig[] = [
+  YOUTUBE_CONFIG,
+  GITHUB_CONFIG,
+  INSTAGRAM_CONFIG,
+  WHATSAPP_CONFIG,
+  REDDIT_CONFIG,
+];
 ```
 
-### Facebook
-```
-Site: Facebook
-ID: facebook
-URL: facebook.com
-Pattern: facebook\\.com
+**5. SiteIcon.tsx:**
+```typescript
+case "reddit":
+  return <MessageCircle size={size} className={className} />;
 ```
 
-## Anti-patterns to Avoid
+## Directory Structure
 
-❌ Creating sites with spaces in ID (use lowercase, no spaces)
-❌ Forgetting to update manifest permissions
-❌ Not testing the URL pattern first
-❌ Using overly broad URL patterns (matches too much)
-❌ Forgetting to add to scripts registry
-❌ Creating without example script (harder to test)
+After adding Reddit, structure looks like:
+```
+src/page-scripts/
+├── scripts.ts                    (updated)
+├── reddit/                       (new folder)
+│   └── reddit_config.ts          (new file)
+├── youtube/
+│   └── youtube_config.ts
+├── github/
+│   └── github_config.ts
+└── ...
 
-## Success Criteria
+config/
+└── scripts-config.json           (updated)
 
-User should have:
-✅ Complete site structure created
-✅ Site appears in extension UI
-✅ Example script working (if created)
-✅ Build completes successfully
-✅ Clear next steps documented
+src/webpage/
+├── configs/
+│   └── pages.tsx                 (updated)
+└── components/
+    └── SiteIcon.tsx              (updated)
+```
 
----
+## URL Pattern Tips
 
-**Remember**: This creates the foundation. User still needs to add meaningful scripts using other skills!
+**Basic domain:**
+```
+"urlPatternBase": "twitter\\.com"
+```
+
+**Subdomain required:**
+```
+"urlPatternBase": "old\\.reddit\\.com"
+```
+
+**Multiple subdomains:**
+```
+"urlPatternBase": "(www\\.)?twitter\\.com"
+```
+
+**Different TLDs:**
+```
+"urlPatternBase": "twitter\\.(com|co\\.uk|jp)"
+```
+
+## Troubleshooting
+
+**Site not appearing in UI?**
+- Check pages.tsx syntax
+- Verify id matches scripts-config.json
+- Rebuild: `npm run build`
+- Check console for React errors
+
+**Scripts not injecting?**
+- Verify urlPatternBase regex
+- Test pattern: `new RegExp("pattern").test(window.location.href)`
+- Check console: `[ScriptInjector]` messages
+- Ensure scripts-config.json is valid JSON
+
+**Build errors?**
+- Check TypeScript syntax in {site}_config.ts
+- Verify import paths
+- Run: `npm run type-check`
+
+**Icon not showing?**
+- Check lucide-react icon name
+- Verify import statement
+- Ensure case matches in switch statement
+- Reload extension
+
+## Notes
+
+- **Bundled config is empty** - All scripts in JSON
+- **UI auto-updates** - DynamicSitePage reads from remote config
+- **No rebuild for new scripts** - Only rebuild when adding new site
+- **Remote updates work** - Once site exists, scripts update via JSON
+- **One site config** - First script requires this process, rest use add-script
+
+## Deploy
+
+```bash
+# After testing locally:
+git add .
+git commit -m "Add {Site} support with {X} scripts"
+git push origin main
+
+# Users get the update:
+# - New site appears in UI after extension update
+# - Scripts available immediately
+```
