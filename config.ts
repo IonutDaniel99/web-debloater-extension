@@ -4,7 +4,7 @@
 
 // GitHub Repository URL
 export const REMOTE_CONFIG_URL = 
-  'https://raw.githubusercontent.com/IonutDaniel99/web-debloater-extension/main/config/scripts-config.json';
+  'https://raw.githubusercontent.com/IonutDaniel99/web-debloater-extension/master/config/scripts-config.json';
 
 // Auto-update interval (hours)
 export const AUTO_UPDATE_INTERVAL_HOURS = 6;
