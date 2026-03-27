@@ -70,26 +70,13 @@
                         "observeChanges": true
                     }
                 },
-                "goToTopButton":{
+                "goToTopButton": {
                     "id": "goToTopButton",
-                    "name": "Go to Top Button (YouTube)",
-                    "description": "Scroll to top on YouTube",
+                    "name": "Go to Top Button",
+                    "description": "Adds a floating 'Go to Top' button on all YouTube pages (custom bundled script)",
                     "type": "enhancement",
-                    "defaultEnabled": true,
-                    "enhancement": {
-                        "enhancementType": "floating-button",
-                        "floatingButton": {
-                            "text": "↑",
-                            "style": {
-                                "position": "bottom-right",
-                                "backgroundColor": "#ff0000",
-                                "color": "white",
-                                "size": 50
-                            },
-                            "showOnScroll": 300,
-                            "onClick": "scrollToTop"
-                        }
-                    }
+                    "defaultEnabled": false,
+                    "bundled": true
                 }
             }
         },
@@ -101,23 +88,10 @@
                 "goToTopButton": {
                     "id": "goToTopButton",
                     "name": "Go to Top Button",
-                    "description": "Adds a floating 'Go to Top' button on all GitHub pages",
+                    "description": "Adds a floating 'Go to Top' button on all GitHub pages (custom bundled script)",
                     "type": "enhancement",
-                    "defaultEnabled": true,
-                    "enhancement": {
-                        "enhancementType": "floating-button",
-                        "floatingButton": {
-                            "text": "↑",
-                            "style": {
-                                "position": "bottom-right",
-                                "backgroundColor": "#0969da",
-                                "color": "white",
-                                "size": 50
-                            },
-                            "showOnScroll": 300,
-                            "onClick": "scrollToTop"
-                        }
-                    }
+                    "defaultEnabled": false,
+                    "bundled": true
                 }
             }
         },

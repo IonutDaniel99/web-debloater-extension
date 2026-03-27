@@ -30,13 +30,15 @@ export default defineConfig({
         
         // Copy scripts (compile .ts to .js)
         const compileAndCopyDir = async (src: string, dest: string) => {
+          // Ensure destination directory exists
+          mkdirSync(dest, { recursive: true });
+          
           const entries = readdirSync(src);
           for (const entry of entries) {
             const srcPath = join(src, entry);
             const destPath = join(dest, entry);
             
             if (statSync(srcPath).isDirectory()) {
-              mkdirSync(destPath, { recursive: true });
               await compileAndCopyDir(srcPath, destPath);
             } else if (entry.endsWith('.ts') && !entry.endsWith('.d.ts') && !entry.endsWith('_config.ts')) {
               // Compile TypeScript content scripts to JavaScript using esbuild
@@ -56,23 +58,19 @@ export default defineConfig({
           }
         };
         
-        // Compile and copy scripts
-        await compileAndCopyDir(
-          resolve(__dirname, 'src/page-scripts/youtube'),
-          resolve(__dirname, 'dist/scripts/youtube')
-        );
-        await compileAndCopyDir(
-          resolve(__dirname, 'src/page-scripts/github'),
-          resolve(__dirname, 'dist/scripts/github')
-        );
-        await compileAndCopyDir(
-          resolve(__dirname, 'src/page-scripts/instagram'),
-          resolve(__dirname, 'dist/scripts/instagram')
-        );
-        await compileAndCopyDir(
-          resolve(__dirname, 'src/page-scripts/whatsapp'),
-          resolve(__dirname, 'dist/scripts/whatsapp')
-        );
+        // Compile and copy all site/shared script directories
+        const pageScriptsDir = resolve(__dirname, 'src/page-scripts');
+        const entries = readdirSync(pageScriptsDir);
+        
+        for (const entry of entries) {
+          const srcPath = join(pageScriptsDir, entry);
+          
+          // Only process directories (skip scripts.ts and trusted-types-bypass.js)
+          if (statSync(srcPath).isDirectory()) {
+            const destPath = resolve(__dirname, 'dist/scripts', entry);
+            await compileAndCopyDir(srcPath, destPath);
+          }
+        }
         
         // Compile dom-utils.ts to core directory
         mkdirSync(resolve(__dirname, 'dist/scripts/core'), { recursive: true });

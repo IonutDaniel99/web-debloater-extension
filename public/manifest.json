@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "Web Debloater & Enhancer",
-    "version": "2026.3.27.1202",
+    "version": "2026.3.27.1441",
     "description": "Auto-updating zone-based website debloater and enhancer",
     "permissions": [
         "storage",
@@ -22,7 +22,17 @@
     },
     "options_page": "index.html",
     "action": {
-        "default_title": "Web Debloater & Enhancer Settings"
+        "default_title": "Web Debloater & Enhancer Settings",
+        "default_icon": {
+            "16": "icons/logo-16.png",
+            "48": "icons/logo-48.png",
+            "128": "icons/logo-128.png"
+        }
+    },
+    "icons": {
+        "16": "icons/logo-16.png",
+        "48": "icons/logo-48.png",
+        "128": "icons/logo-128.png"
     },
     "content_scripts": [
         {
@@ -39,6 +49,7 @@
     "web_accessible_resources": [
         {
             "resources": [
+                "scripts/shared/**/*.js",
                 "scripts/youtube/**/*.js",
                 "scripts/github/**/*.js",
                 "scripts/instagram/**/*.js",

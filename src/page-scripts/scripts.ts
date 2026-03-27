@@ -1,14 +1,12 @@
 /**
- * Sites Configuration
+ * Script Types
  *
- * Defines sites, URL patterns, and scripts to inject.
- * Scripts are only injected if enabled in global settings.
+ * Type definitions for bundled scripts.
+ * All script configuration is now loaded from scripts-config.json.
+ * 
+ * These types are kept for backward compatibility with existing code,
+ * but new scripts should be defined in scripts-config.json only.
  */
-
-import { GITHUB_CONFIG } from "./github/github_config";
-import { INSTAGRAM_CONFIG } from "./instagram/instagram_config";
-import { YOUTUBE_CONFIG } from "./youtube/youtube_config";
-import { WHATSAPP_CONFIG } from "./whatsapp/whatsapp_config";
 
 export interface ScriptConfig {
   id: string; // Unique script ID (used in settings)
@@ -30,15 +28,3 @@ export interface SiteConfig {
   defaultScripts: ScriptConfig[]; // Scripts to run on all pages of this site
   pathScripts: PathScript[]; // Scripts to run on specific paths
 }
-
-/**
- * Exported Configuration Array
- *
- * Order matters for UI display and script injection priority.
- */
-export const SCRIPTS_CONFIG: SiteConfig[] = [
-  YOUTUBE_CONFIG,
-  GITHUB_CONFIG,
-  INSTAGRAM_CONFIG,
-  WHATSAPP_CONFIG,
-];

@@ -3,15 +3,14 @@
  * 
  * Handles conditional injection of scripts into web pages.
  * Supports BOTH:
- * - Legacy bundled scripts (for complex custom scripts)
+ * - Bundled scripts (for complex custom scripts)
  * - Data-driven scripts (using generic engines + remote config)
  * 
- * The hybrid approach allows gradual migration while maintaining flexibility.
+ * All configuration is loaded from scripts-config.json (stored in chrome.storage).
  */
 
-import { SCRIPTS_CONFIG } from "@/page-scripts/scripts";
 import { StorageManager } from './storage-manager';
-import { getScriptsForURL as getRemoteScriptsForURL } from './remote-config';
+import { getScriptsForURL as getRemoteScriptsForURL, getBundledScriptsForURL, loadRemoteConfig } from './remote-config';
 import { executeRemoval } from '@/engines/removal-engine';
 import { executeEnhancement } from '@/engines/enhancement-engine';
 
@@ -227,13 +226,13 @@ export class ScriptInjector {
       }
     }
 
-    // ===== INJECT LEGACY BUNDLED SCRIPTS (Fallback) =====
+    // ===== INJECT BUNDLED SCRIPTS =====
     
-    const legacyMatch = getLegacyScriptsForURL(url);
+    const bundledMatch = await getBundledScriptsForURL(url);
     
-    if (legacyMatch) {
-      const { siteId, scripts } = legacyMatch;
-      console.log(`[ScriptInjector] Site: ${siteId}, Legacy scripts to check:`, scripts.map(s => s.id));
+    if (bundledMatch) {
+      const { siteId, scripts } = bundledMatch;
+      console.log(`[ScriptInjector] Site: ${siteId}, Bundled scripts to check:`, scripts.map(s => s.id));
 
       for (const script of scripts) {
         const scriptKey = `${siteId}/${script.id}`;
@@ -253,7 +252,7 @@ export class ScriptInjector {
           continue;
         }
 
-        // Inject legacy bundled script
+        // Inject bundled script
         try {
           await chrome.scripting.executeScript({
             target: { tabId },
@@ -263,7 +262,7 @@ export class ScriptInjector {
           
           injected.push(scriptKey);
           tabInjected.add(scriptKey);
-          console.log(`[ScriptInjector] ✓ Injected legacy script ${scriptKey}`);
+          console.log(`[ScriptInjector] ✓ Injected bundled script ${scriptKey}`);
         } catch (error) {
           console.error(`[ScriptInjector] Failed to inject ${scriptKey}:`, error);
           skipped.push(scriptKey);
@@ -271,11 +270,44 @@ export class ScriptInjector {
       }
     }
 
+    // Update badge to show active script count
+    await this.updateBadge(tabId, injected.length);
+
     return {
       success: true,
       injected,
       skipped,
     };
+  }
+
+  /**
+   * Update extension badge to show number of active scripts
+   */
+  static async updateBadge(tabId: number, count: number): Promise<void> {
+    try {
+      if (count > 0) {
+        await chrome.action.setBadgeText({
+          tabId,
+          text: count.toString()
+        });
+        await chrome.action.setBadgeBackgroundColor({
+          tabId,
+          color: '#0969da' // Blue color
+        });
+        await chrome.action.setBadgeTextColor({
+          tabId,
+          color: '#ffffff' // White text
+        });
+      } else {
+        // Clear badge if no scripts
+        await chrome.action.setBadgeText({
+          tabId,
+          text: ''
+        });
+      }
+    } catch (error) {
+      console.error('[ScriptInjector] Failed to update badge:', error);
+    }
   }
 
   /**
@@ -297,10 +329,11 @@ export class ScriptInjector {
    * This clears tracking and re-injects based on new settings
    */
   static async refreshTabsForSite(siteId: string): Promise<void> {
-    // Get site config to find URL pattern
-    const siteConfig = SCRIPTS_CONFIG.find(s => s.id === siteId);
-    if (!siteConfig) return;
-
+    // Get site config from remote config
+    const config = await loadRemoteConfig();
+    if (!config || !config.sites[siteId]) return;
+    
+    const siteConfig = config.sites[siteId];
     const tabs = await chrome.tabs.query({});
     
     for (const tab of tabs) {
@@ -332,41 +365,6 @@ export class ScriptInjector {
       }
     }
   }
-}
-
-/**
- * Get legacy bundled scripts that should run for a given URL
- * This is for compatibility with existing bundled scripts
- */
-export function getLegacyScriptsForURL(url: string): {
-  siteId: string;
-  scripts: Array<{ id: string; scriptPath: string }>;
-} | null {
-  for (const site of SCRIPTS_CONFIG) {
-    // Check if URL matches site's base pattern
-    if (!matchesPattern(url, site.urlPatternBase)) continue;
-
-    const scriptsToRun: Array<{ id: string; scriptPath: string }> = [];
-    
-    // Always add default scripts
-    site.defaultScripts.forEach(script => {
-      scriptsToRun.push({ id: script.id, scriptPath: script.scriptPath });
-    });
-    
-    // Add path-specific scripts if URL matches
-    site.pathScripts.forEach(script => {
-      if (matchesPattern(url, script.urlPattern)) {
-        scriptsToRun.push({ id: script.id, scriptPath: script.scriptPath });
-      }
-    });
-
-    return { 
-      siteId: site.id,
-      scripts: scriptsToRun 
-    };
-  }
-
-  return null;
 }
 
 /**

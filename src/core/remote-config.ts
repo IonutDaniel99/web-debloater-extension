@@ -305,3 +305,76 @@ export async function getScriptsForURL(url: string): Promise<{
 
   return null;
 }
+
+/**
+ * Get bundled scripts for a specific URL from remote config
+ * This returns only scripts marked with bundled: true
+ */
+export async function getBundledScriptsForURL(url: string): Promise<{
+  siteId: string;
+  scripts: Array<{ id: string; scriptPath: string }>;
+} | null> {
+  const config = await loadRemoteConfig();
+  if (!config) {
+    console.log('[RemoteConfig] No remote config loaded');
+    return null;
+  }
+
+  // Find matching site
+  for (const [siteId, siteConfig] of Object.entries(config.sites)) {
+    const pattern = new RegExp(siteConfig.urlPatternBase);
+    if (pattern.test(url)) {
+      // Get only bundled scripts
+      const bundledScripts = Object.values(siteConfig.scripts)
+        .filter((script) => {
+          // Only include bundled scripts
+          if (!script.bundled) {
+            return false;
+          }
+          
+          // Check script-specific URL pattern if exists
+          if (script.urlPattern) {
+            const scriptPattern = new RegExp(script.urlPattern);
+            return scriptPattern.test(url);
+          }
+          return true;
+        })
+        .map((script) => {
+          // Determine script path based on site and script ID
+          // Convention: shared scripts go in shared/, others in <site>/add/
+          const scriptPath = script.id === 'goToTopButton' || script.id === 'privacyBlurControls'
+            ? getScriptPath(siteId, script.id)
+            : `${siteId}/add/${script.id}.js`;
+          
+          return {
+            id: script.id,
+            scriptPath,
+          };
+        });
+
+      if (bundledScripts.length > 0) {
+        return { siteId, scripts: bundledScripts };
+      }
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Get the script path for a bundled script
+ */
+function getScriptPath(siteId: string, scriptId: string): string {
+  // Shared scripts
+  if (scriptId === 'goToTopButton') {
+    return 'shared/goToTopButton.js';
+  }
+  
+  // Site-specific scripts
+  if (siteId === 'whatsapp' && scriptId === 'privacyBlurControls') {
+    return 'whatsapp/add/privacyBlurControls.js';
+  }
+  
+  // Default: assume it's in site/add/ folder
+  return `${siteId}/add/${scriptId}.js`;
+}
