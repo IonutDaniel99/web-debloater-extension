@@ -104,7 +104,14 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
   
   // Inject scripts when page has finished loading
   if (changeInfo.status === 'complete' && tab.url) {
-    await ScriptInjector.handleNavigation(tabId, tab.url);
+    try {
+      await ScriptInjector.handleNavigation(tabId, tab.url);
+    } catch (error: any) {
+      // Only log errors that aren't about missing tabs
+      if (!error?.message?.includes('No tab with id')) {
+        console.error('[ServiceWorker] Failed to handle navigation:', error);
+      }
+    }
   }
 });
 

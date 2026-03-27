@@ -26,12 +26,36 @@ const injectedScripts = new Map<number, Set<string>>();
 
 export class ScriptInjector {
   /**
+   * Check if a tab still exists and is valid
+   */
+  private static async isTabValid(tabId: number): Promise<boolean> {
+    try {
+      const tab = await chrome.tabs.get(tabId);
+      return tab !== undefined;
+    } catch (error) {
+      // Tab doesn't exist or was closed
+      return false;
+    }
+  }
+
+  /**
    * Inject scripts for current URL on a tab
    * Supports both legacy bundled scripts AND data-driven scripts
    */
   static async injectForTab(tabId: number, url: string): Promise<InjectionResult> {
     const injected: string[] = [];
     const skipped: string[] = [];
+
+    // Validate tab exists before proceeding
+    if (!(await this.isTabValid(tabId))) {
+      console.log(`[ScriptInjector] Tab ${tabId} no longer exists, skipping injection`);
+      return {
+        success: false,
+        injected: [],
+        skipped: [],
+        error: 'Tab no longer exists'
+      };
+    }
 
     // Initialize tracking for this tab if needed
     if (!injectedScripts.has(tabId)) {
@@ -45,6 +69,12 @@ export class ScriptInjector {
     
     // Inject dom-utils globally (only once per tab)
     if (!tabInjected.has('__dom_utils__')) {
+      // Check tab is still valid before injection
+      if (!(await this.isTabValid(tabId))) {
+        console.log(`[ScriptInjector] Tab ${tabId} closed before dom-utils injection`);
+        return { success: false, injected: [], skipped: [], error: 'Tab closed' };
+      }
+      
       try {
         await chrome.scripting.executeScript({
           target: { tabId },
@@ -53,13 +83,23 @@ export class ScriptInjector {
         });
         tabInjected.add('__dom_utils__');
         console.log(`[ScriptInjector] ✓ Injected dom-utils.js`);
-      } catch (error) {
-        console.error(`[ScriptInjector] Failed to inject dom-utils:`, error);
+      } catch (error: any) {
+        // Only log errors that aren't about missing tabs
+        if (!error?.message?.includes('No tab with id')) {
+          console.error(`[ScriptInjector] Failed to inject dom-utils:`, error);
+        }
+        return { success: false, injected: [], skipped: [], error: 'Injection failed' };
       }
     }
 
     // Inject predefined actions (only once per tab)
     if (!tabInjected.has('__predefined_actions__')) {
+      // Check tab is still valid before injection
+      if (!(await this.isTabValid(tabId))) {
+        console.log(`[ScriptInjector] Tab ${tabId} closed before predefined actions injection`);
+        return { success: false, injected: [], skipped: [], error: 'Tab closed' };
+      }
+      
       try {
         await chrome.scripting.executeScript({
           target: { tabId },
@@ -165,8 +205,12 @@ export class ScriptInjector {
         
         tabInjected.add('__predefined_actions__');
         console.log(`[ScriptInjector] ✓ Injected predefined actions`);
-      } catch (error) {
-        console.error(`[ScriptInjector] Failed to inject predefined actions:`, error);
+      } catch (error: any) {
+        // Only log errors that aren't about missing tabs
+        if (!error?.message?.includes('No tab with id')) {
+          console.error(`[ScriptInjector] Failed to inject predefined actions:`, error);
+        }
+        return { success: false, injected: [], skipped: [], error: 'Injection failed' };
       }
     }
 
@@ -200,6 +244,12 @@ export class ScriptInjector {
 
         // Inject based on type
         try {
+          // Validate tab before injection
+          if (!(await this.isTabValid(tabId))) {
+            console.log(`[ScriptInjector] Tab ${tabId} closed before injecting ${scriptKey}`);
+            return { success: false, injected, skipped, error: 'Tab closed' };
+          }
+          
           if (type === 'removal') {
             await chrome.scripting.executeScript({
               target: { tabId },
@@ -219,8 +269,11 @@ export class ScriptInjector {
           injected.push(scriptKey);
           tabInjected.add(scriptKey);
           console.log(`[ScriptInjector] ✓ Injected data-driven script ${scriptKey}`);
-        } catch (error) {
-          console.error(`[ScriptInjector] Failed to inject ${scriptKey}:`, error);
+        } catch (error: any) {
+          // Only log errors that aren't about missing tabs
+          if (!error?.message?.includes('No tab with id')) {
+            console.error(`[ScriptInjector] Failed to inject ${scriptKey}:`, error);
+          }
           skipped.push(scriptKey);
         }
       }
@@ -254,6 +307,12 @@ export class ScriptInjector {
 
         // Inject bundled script
         try {
+          // Validate tab before injection
+          if (!(await this.isTabValid(tabId))) {
+            console.log(`[ScriptInjector] Tab ${tabId} closed before injecting ${scriptKey}`);
+            return { success: false, injected, skipped, error: 'Tab closed' };
+          }
+          
           await chrome.scripting.executeScript({
             target: { tabId },
             files: [`scripts/${script.scriptPath}`],
@@ -263,8 +322,11 @@ export class ScriptInjector {
           injected.push(scriptKey);
           tabInjected.add(scriptKey);
           console.log(`[ScriptInjector] ✓ Injected bundled script ${scriptKey}`);
-        } catch (error) {
-          console.error(`[ScriptInjector] Failed to inject ${scriptKey}:`, error);
+        } catch (error: any) {
+          // Only log errors that aren't about missing tabs
+          if (!error?.message?.includes('No tab with id')) {
+            console.error(`[ScriptInjector] Failed to inject ${scriptKey}:`, error);
+          }
           skipped.push(scriptKey);
         }
       }
@@ -284,6 +346,12 @@ export class ScriptInjector {
    * Update extension badge to show number of active scripts
    */
   static async updateBadge(tabId: number, count: number): Promise<void> {
+    // Validate tab exists before updating badge
+    if (!(await this.isTabValid(tabId))) {
+      console.log(`[ScriptInjector] Tab ${tabId} no longer exists, skipping badge update`);
+      return;
+    }
+    
     try {
       if (count > 0) {
         await chrome.action.setBadgeText({
@@ -305,8 +373,11 @@ export class ScriptInjector {
           text: ''
         });
       }
-    } catch (error) {
-      console.error('[ScriptInjector] Failed to update badge:', error);
+    } catch (error: any) {
+      // Only log errors that aren't about missing tabs
+      if (!error?.message?.includes('No tab with id')) {
+        console.error('[ScriptInjector] Failed to update badge:', error);
+      }
     }
   }
 

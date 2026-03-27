@@ -51,8 +51,8 @@ export const Home = () => {
 
   const enabledScripts = remoteConfig ? Object.entries(remoteConfig.sites).reduce((acc, [siteId, site]) => {
     const enabled = Object.values(site.scripts).filter(script => {
-      const settingKey = `${siteId}/${script.id}`;
-      return settings[settingKey]?.enabled ?? script.defaultEnabled;
+      // Check nested structure: settings[siteId][scriptId].enabled
+      return settings[siteId]?.[script.id]?.enabled ?? script.defaultEnabled;
     }).length;
     return acc + enabled;
   }, 0) : 0;
@@ -64,8 +64,8 @@ export const Home = () => {
       {/* Hero Section */}
       <div className="relative overflow-hidden border-b border-border bg-gradient-to-br from-background via-background to-primary/5">
         <div className="max-w-6xl mx-auto px-6 py-10">
-          <div className="flex items-start justify-between gap-6">
-            <div className="flex-1">
+          <div className="flex items-end justify-between gap-6">
+            <div className="w-1/2">
               <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-medium mb-4">
                 <Zap className="w-3 h-3" />
                 Browser Extension
@@ -80,7 +80,7 @@ export const Home = () => {
             </div>
 
             {/* Stats Grid */}
-            <div className="hidden lg:grid grid-cols-2 gap-3 min-w-[240px]">
+            <div className="hidden lg:grid grid-cols-4 gap-3 w-1/2">
               <StatCard
                 icon={<Shield className="w-4 h-4" />}
                 value={supportedSites.toString()}
