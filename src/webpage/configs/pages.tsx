@@ -32,6 +32,11 @@ export const PAGES: PagesInterface[] = [
     id: 'whatsapp',
     element: <DynamicSitePage siteId="whatsapp" />,
     path: '/site/whatsapp'
+  },
+  {
+    id: 'linkedin',
+    element: <DynamicSitePage siteId="linkedin" />,
+    path: '/site/linkedin'
   }
 ];
 

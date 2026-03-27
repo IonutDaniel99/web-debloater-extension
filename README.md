@@ -63,13 +63,6 @@ npm run build
 # - Select the dist/ folder
 ```
 
-# 5. Load in Chrome
-# - Open chrome://extensions/
-# - Enable "Developer mode"
-# - Click "Load unpacked"
-# - Select the dist/ folder
-```
-
 ---
 
 ## Configuration
@@ -180,7 +173,20 @@ dist/                          # Build output (load this in Chrome)
 
 ## Adding Scripts
 
-### Add Removal Script
+### Using Skills (Recommended)
+
+**For AI assistance, use these built-in skills:**
+
+- **`/add-script`** - Add any removal or enhancement script with guided prompts
+- **`/add-removal-script`** - Specifically for hiding/removing elements
+- **`/add-enhancement-script`** - Add floating buttons or keyboard shortcuts
+- **`/add-new-site`** - Add support for a completely new website
+
+These skills will guide you through the process and handle all file updates automatically.
+
+### Manual Configuration
+
+#### Add Removal Script
 
 Edit `config/scripts-config.json`:
 
@@ -200,7 +206,7 @@ Edit `config/scripts-config.json`:
 }
 ```
 
-### Add Enhancement - Floating Button
+#### Add Enhancement - Floating Button
 
 ```json
 {
@@ -226,7 +232,7 @@ Edit `config/scripts-config.json`:
 }
 ```
 
-### Add Enhancement - Keyboard Shortcut
+#### Add Enhancement - Keyboard Shortcut
 
 ```json
 {
@@ -248,7 +254,7 @@ Edit `config/scripts-config.json`:
 }
 ```
 
-### Deploy Changes
+#### Deploy Changes
 
 ```bash
 git add config/scripts-config.json
@@ -277,9 +283,7 @@ See `src/engines/predefined-actions.ts`:
 
 ---
 
-## Selector System (Legacy)
-
-> **Note:** Selectors are now part of script configs in `scripts-config.json`
+## Selector System
 
 ### Testing Selectors
 
@@ -288,15 +292,8 @@ See `src/engines/predefined-actions.ts`:
 document.querySelectorAll('YOUR_SELECTOR')
 // Should highlight the elements you want to remove/target
 ```
-          { "selector": "x1dr59a3 x13vifvy x7vhb2i", "type": "class" }
-        ]
-      }
-    }
-  }
-}
-```
 
-**Format Types:**
+### Selector Format Types
 
 1. **String** - Single CSS selector
 2. **Array** - Multiple CSS selectors
@@ -306,57 +303,29 @@ document.querySelectorAll('YOUR_SELECTOR')
    - `id` - Element ID
    - `class` - Space-separated class names (e.g., "x1dr59a3 x13vifvy x7vhb2i")
 
-### Using Selectors in Scripts
+**Examples with different selector types:**
 
-**For Removing Elements:**
-```typescript
-// Content script - Remove elements
-const selectors = window.Debloater.getSelectors('youtube.shorts.button');
-window.Debloater.deleteElements(selectors);
-window.Debloater.observeAndRemove(selectors); // Auto-remove when they appear
+```json
+{
+  "removal": {
+    "selectorPath": "div.unwanted-element"
+  }
+}
+
+// OR with type specification
+{
+  "removal": {
+    "selectorPath": { "selector": "x1dr59a3 x13vifvy x7vhb2i", "type": "class" }
+  }
+}
+
+// OR XPath
+{
+  "removal": {
+    "selectorPath": { "selector": "//div[@class='promoted']", "type": "xpath" }
+  }
+}
 ```
-
-**For Adding UI Elements:**
-```typescript
-// Content script - Add "Go to Top" button
-const buttonHTML = `
-  <button id="my-button" style="position: fixed; bottom: 20px; right: 20px;">
-    ↑ Top
-  </button>
-`;
-window.Debloater.addElements(buttonHTML, 'body', 'append');
-
-// Add click handler
-document.getElementById('my-button').onclick = () => {
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-};
-```
-
-### Updating Selectors
-
-1. **Test selector** on live site:
-   ```javascript
-   // Browser console
-   document.querySelectorAll('YOUR_SELECTOR')
-   ```
-
-2. **Update `selectors.json`**:
-   ```json
-   {
-     "version": "1.0.1",  // Increment version
-     "selectors": {
-       "youtube": {
-         "shorts": {
-           "home": ["new-selector", "another-selector"]
-         }
-       }
-     }
-   }
-   ```
-
-3. **Upload to remote URL**
-
-4. **Users get update** automatically within 24h or via manual update
 
 ---
 
@@ -456,41 +425,35 @@ Changes to React components hot reload automatically.
 **Content Scripts:**
 - Open page (e.g., youtube.com)
 - DevTools → Console
-- LoEnvironment Variables Not Loading
-
-1. Ensure `.env` file is in project root
-2. Variable names must start with `VITE_`
-3. Restart dev server after changing `.env`
-4. Rebuild: `npm run build`
-
-### ok for `[Debloater]` logs
+- Look for `[Debloater]` logs
 
 **Storage:**
 - DevTools → Application → Storage → chrome.storage.local
-- Check `selectors_data` and settings
+- Check stored settings and configuration
 
 ---
 
 ## Troubleshooting
 
-### Selectors Not Loading
+### Configuration Not Loading
 
 1. Check service worker console for errors
-2. Verify `window.__SELECTORS__` exists in page console
-3. Check `chrome.storage.local` has `selectors_data`
+2. Verify `chrome.storage.local` has configuration data
+3. Try clicking "Check for Updates" in extension settings
 
 ### Scripts Not Injecting
 
-1. Verify URL patterns in `config/scripts.ts` match the page
-2. Check zones are enabled in web page
+1. Verify URL patterns in `scripts-config.json` match the page
+2. Check scripts are enabled in extension settings
 3. Look for injection errors in service worker console
+4. Ensure site permissions are granted in `chrome://extensions/`
 
 ### Updates Not Working
 
-1. Verify `SELECTORS_URL` is correct and publicly accessible
-2. Check version is incremented in remote `selectors.json`
+1. Verify `REMOTE_CONFIG_URL` in `config.ts` is correct and publicly accessible
+2. Check version is incremented in remote `scripts-config.json`
 3. Check service worker console for fetch errors
-4. Try manual update from web page
+4. Try manual update from extension settings page
 
 ### Build Errors
 
@@ -566,11 +529,17 @@ export type SelectorInput =
 
 ### Update Process
 
-1. Update code/selectors
+**For Code Changes:**
+1. Update code in `src/`
 2. Increment version in `package.json`
-3. Build and test
-4. Upload new version to store
-5. For selector-only updates, just update remote `selectors.json`
+3. Build and test: `npm run build`
+4. Upload new version to Chrome Web Store
+
+**For Config-Only Updates:**
+1. Edit `config/scripts-config.json`
+2. Increment version in the JSON file
+3. Push to GitHub
+4. Users get updates automatically (no Chrome Store submission needed!)
 
 ---
 

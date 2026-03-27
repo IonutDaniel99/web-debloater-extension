@@ -16,10 +16,17 @@ export interface RemovalConfig {
   id: string;
   name: string;
   description: string;
-  selectors: Array<{
+  selectors?: Array<{
     selector: string;
     type?: 'css' | 'xpath' | 'id' | 'class';
   }>;
+  textBasedRemoval?: {
+    childSelector: string;           // Selector for elements that contain text
+    keywords: string[];               // Text keywords to search for
+    parentSelector?: string;          // Parent selector to remove (.closest())
+    parentLevels?: number;            // Alternative: go up N levels
+    matchMode?: 'exact' | 'contains'; // Default: 'contains'
+  };
   observeChanges?: boolean; // Use MutationObserver (default: true)
   waitFor?: string; // Wait for this selector before running
   retryDelay?: number; // Retry after N milliseconds (for dynamic content)
@@ -59,9 +66,10 @@ export function executeRemoval(config: RemovalConfig) {
 
   // Get selectors from config
   const SELECTORS = config.selectors;
+  const TEXT_BASED_CONFIG = config.textBasedRemoval;
 
-  if (!SELECTORS || SELECTORS.length === 0) {
-    console.warn(`[${APP_NAME}][${SCRIPT_ID}] No selectors provided in config`);
+  if (!SELECTORS && !TEXT_BASED_CONFIG) {
+    console.warn(`[${APP_NAME}][${SCRIPT_ID}] No selectors or textBasedRemoval config provided`);
     return;
   }
 
@@ -69,7 +77,18 @@ export function executeRemoval(config: RemovalConfig) {
    * Perform removal operation
    */
   function performRemoval() {
-    const removed = window.Debloater!.deleteElements(SELECTORS);
+    let removed = 0;
+    
+    // Standard selector-based removal
+    if (SELECTORS && SELECTORS.length > 0) {
+      removed += window.Debloater!.deleteElements(SELECTORS);
+    }
+    
+    // Text-based parent removal
+    if (TEXT_BASED_CONFIG) {
+      removed += window.Debloater!.removeByTextContent(TEXT_BASED_CONFIG);
+    }
+    
     if (removed > 0) {
       console.log(`[${APP_NAME}][${SCRIPT_ID}] Removed ${removed} elements`);
     }
@@ -91,7 +110,15 @@ export function executeRemoval(config: RemovalConfig) {
     // Observe for dynamic changes (default: true)
     const shouldObserve = config.observeChanges !== false;
     if (shouldObserve) {
-      window.Debloater!.observeAndRemove(SELECTORS);
+      // Observe selector-based removal
+      if (SELECTORS && SELECTORS.length > 0) {
+        window.Debloater!.observeAndRemove(SELECTORS);
+      }
+      
+      // Observe text-based removal
+      if (TEXT_BASED_CONFIG) {
+        window.Debloater!.observeAndRemoveByText(TEXT_BASED_CONFIG);
+      }
     }
 
     console.log(`[${APP_NAME}][${SCRIPT_ID}] Active (data-driven)`);

@@ -159,6 +159,30 @@
                     "bundled": true
                 }
             }
+        },
+        "linkedin": {
+            "name": "LinkedIn",
+            "urlPatternBase": "linkedin\\.com",
+            "icon": "linkedin",
+            "scripts": {
+                "removeSponsoredContent": {
+                    "id": "removeSponsoredContent",
+                    "name": "Remove Sponsored & Promoted Content",
+                    "description": "Removes sponsored posts and promoted content from LinkedIn feed",
+                    "type": "removal",
+                    "defaultEnabled": true,
+                    "removal": {
+                        "textBasedRemoval": {
+                            "childSelector": ".b59db227._5be0f4b2._290aaf75.b523a02c._2f42b988._35b8dc08._4a078c5d._5004b876",
+                            "keywords": ["Sponsored", "Promoted"],
+                            "parentSelector": ".e32619dd._5004b876.e0af35a8",
+                            "matchMode": "contains"
+                        },
+                        "observeChanges": true,
+                        "retryDelay": 1000
+                    }
+                }
+            }
         }
     }
 }

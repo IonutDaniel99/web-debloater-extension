@@ -19,6 +19,16 @@ interface DebloaterUtils {
   deleteElements: (selectors: SelectorInput) => number;
   observeAndRemove: (selectors: SelectorInput, callback?: ((count: number) => void) | null) => MutationObserver;
   waitForElement: (selector: string, timeout?: number) => Promise<Element>;
+  removeByTextContent: (config: TextBasedRemovalConfig) => number;
+  observeAndRemoveByText: (config: TextBasedRemovalConfig, callback?: ((count: number) => void) | null) => MutationObserver;
+}
+
+export interface TextBasedRemovalConfig {
+  childSelector: string;           // Selector for elements that contain text
+  keywords: string[];               // Text keywords to search for (case-insensitive)
+  parentSelector?: string;          // Parent selector to remove (uses .closest())
+  parentLevels?: number;            // Alternative: go up N levels from child
+  matchMode?: 'exact' | 'contains'; // Default: 'contains'
 }
 
 declare global {
@@ -203,6 +213,80 @@ export {};
           reject(new Error(`Element not found: ${selector}`));
         }, timeout);
       });
+    },
+
+    /**
+     * Remove elements by finding text content in children
+     * Example: Find "Sponsored" in <p>, remove parent <div>
+     */
+    removeByTextContent(config) {
+      const matchMode = config.matchMode || 'contains';
+      let totalRemoved = 0;
+      const removedElements = new Set<Element>();
+      
+      // Find all potential child elements
+      const childElements = document.querySelectorAll(config.childSelector);
+      
+      childElements.forEach(child => {
+        const text = child.textContent?.trim() || '';
+        
+        // Check if any keyword matches
+        const hasMatch = config.keywords.some(keyword => {
+          if (matchMode === 'exact') {
+            return text.toLowerCase() === keyword.toLowerCase();
+          }
+          return text.toLowerCase().includes(keyword.toLowerCase());
+        });
+        
+        if (!hasMatch) return;
+        
+        // Find parent to remove
+        let targetParent: Element | null = null;
+        
+        if (config.parentSelector) {
+          // Use closest() to find parent by selector
+          targetParent = child.closest(config.parentSelector);
+        } else if (config.parentLevels) {
+          // Go up N levels
+          targetParent = child as Element;
+          for (let i = 0; i < config.parentLevels; i++) {
+            if (targetParent.parentElement) {
+              targetParent = targetParent.parentElement;
+            }
+          }
+        } else {
+          // Default: remove the child itself
+          targetParent = child as Element;
+        }
+        
+        // Remove parent (avoid duplicates)
+        if (targetParent && !removedElements.has(targetParent)) {
+          removedElements.add(targetParent);
+          targetParent.remove();
+          totalRemoved++;
+        }
+      });
+      
+      return totalRemoved;
+    },
+
+    /**
+     * Observe DOM and auto-remove by text content
+     */
+    observeAndRemoveByText(config, callback = null) {
+      const observer = new MutationObserver(() => {
+        const count = this.removeByTextContent(config);
+        if (count > 0 && callback) {
+          callback(count);
+        }
+      });
+      
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true
+      });
+      
+      return observer;
     }
   };
 
