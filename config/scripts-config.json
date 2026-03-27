@@ -171,11 +171,12 @@
                     "description": "Removes sponsored posts and promoted content from LinkedIn feed",
                     "type": "removal",
                     "defaultEnabled": true,
+                    "urlPattern": "linkedin\\.com/feed",
                     "removal": {
                         "textBasedRemoval": {
-                            "childSelector": ".b59db227._5be0f4b2._290aaf75.b523a02c._2f42b988._35b8dc08._4a078c5d._5004b876",
-                            "keywords": ["Sponsored", "Promoted"],
-                            "parentSelector": ".e32619dd._5004b876.e0af35a8",
+                            "childSelector": "p.b59db227._5be0f4b2._290aaf75, span.tvm__text, p[class*='_5004b876']",
+                            "keywords": ["Sponsored", "Promoted", "Suggested"],
+                            "parentSelector": "div.e32619dd._5004b876.e0af35a8, div._86220192[data-display-contents]",
                             "matchMode": "contains"
                         },
                         "observeChanges": true,

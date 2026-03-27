@@ -234,7 +234,17 @@ export class ScriptInjector {
         }
         
         // Check if script is enabled in settings (use full ID)
-        const isEnabled = settings[scriptKey]?.enabled ?? true;
+        // Support both flat key format ('linkedin/removeSponsoredContent') and extracted scriptId ('removeSponsoredContent')
+        const scriptId = config.id.split('/').pop() || config.id;
+        const siteId = remoteMatch.siteId;
+        
+        // Check multiple possible settings locations
+        const isEnabled = 
+          settings[scriptKey]?.enabled ?? // Flat key with .enabled
+          settings[scriptKey] ??  // Flat key boolean
+          settings[siteId]?.[scriptId]?.enabled ?? // Nested: site.scriptId.enabled  
+          settings[siteId]?.[scriptId] ?? // Nested: site.scriptId boolean
+          true; // Default to enabled
         
         if (!isEnabled) {
           skipped.push(scriptKey);

@@ -42,10 +42,17 @@ export interface RemoteScriptConfig {
 }
 
 export interface RemoteRemovalConfig {
-  selectors: Array<{
+  selectors?: Array<{
     selector: string;
     type?: 'css' | 'xpath' | 'id' | 'class';
   }>;
+  textBasedRemoval?: {
+    childSelector: string;
+    keywords: string[];
+    parentSelector?: string;
+    parentLevels?: number;
+    matchMode?: 'exact' | 'contains';
+  };
   observeChanges?: boolean;
   waitFor?: string;
   retryDelay?: number;
@@ -222,6 +229,7 @@ export function convertToRemovalConfig(
     name: script.name,
     description: script.description,
     selectors: script.removal.selectors,
+    textBasedRemoval: script.removal.textBasedRemoval,
     observeChanges: script.removal.observeChanges,
     waitFor: script.removal.waitFor,
     retryDelay: script.removal.retryDelay,
