@@ -155,7 +155,7 @@
                     "name": "Privacy Blur Controls",
                     "description": "Adds privacy blur controls to WhatsApp Web interface (custom bundled script)",
                     "type": "enhancement",
-                    "defaultEnabled": true,
+                    "defaultEnabled": false,
                     "bundled": true
                 }
             }
@@ -170,7 +170,7 @@
                     "name": "Remove Sponsored & Promoted Content",
                     "description": "Removes sponsored posts and promoted content from LinkedIn feed",
                     "type": "removal",
-                    "defaultEnabled": true,
+                    "defaultEnabled": false,
                     "urlPattern": "linkedin\\.com/feed",
                     "removal": {
                         "textBasedRemoval": {
